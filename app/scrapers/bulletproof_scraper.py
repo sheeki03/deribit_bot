@@ -125,46 +125,152 @@ class BulletproofScraper:
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     async def discover_articles_html(self) -> List[Dict]:
         """
-        Secondary method: Scrape category pages directly.
-        Fallback when RSS feeds are unavailable.
+        Secondary method: Scrape category pages directly with pagination support.
+        Discovers ALL sub-links from https://insights.deribit.com/option-flows/
         """
         articles = []
+        article_links = set()
         
         try:
-            logger.info("Discovering articles via HTML scraping")
+            logger.info("Discovering ALL articles via HTML scraping with pagination")
             
-            # Scrape main option flows category page
-            response = await self.session.get("https://insights.deribit.com/option-flows/")
-            response.raise_for_status()
+            # Start with page 1 and continue until no more pages
+            page = 1
+            max_pages = 50  # Safety limit to prevent infinite loops
             
-            soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Look for article links
-            article_links = set()
-            
-            # Common patterns for article links
-            link_selectors = [
-                'a[href*="/option-flows/"]',
-                'a[href*="/option-flow-"]',
-                '.entry-title a',
-                '.post-title a',
-                'h2 a',
-                'h3 a'
-            ]
-            
-            for selector in link_selectors:
-                links = soup.select(selector)
-                for link in links:
-                    href = link.get('href')
-                    if href:
-                        full_url = urljoin("https://insights.deribit.com", href)
-                        if self.is_option_flows_url(full_url) and full_url not in self.processed_urls:
-                            article_links.add(full_url)
-            
-            # Extract metadata for each discovered article
-            for url in article_links:
+            while page <= max_pages:
+                # Construct page URL
+                if page == 1:
+                    page_url = "https://insights.deribit.com/option-flows/"
+                else:
+                    # Common WordPress pagination patterns
+                    page_url = f"https://insights.deribit.com/option-flows/page/{page}/"
+                
+                logger.info(f"Scraping page {page}: {page_url}")
+                
                 try:
                     await asyncio.sleep(settings.request_delay)  # Rate limiting
+                    response = await self.session.get(page_url)
+                    
+                    # If we get 404, try alternative pagination formats
+                    if response.status_code == 404:
+                        # Try query parameter format
+                        alt_page_url = f"https://insights.deribit.com/option-flows/?page={page}"
+                        response = await self.session.get(alt_page_url)
+                        
+                        if response.status_code == 404:
+                            logger.info(f"No more pages found at page {page}")
+                            break
+                    
+                    response.raise_for_status()
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    
+                    # Find article links on this page
+                    page_links = set()
+                    
+                    # Enhanced selectors to catch all possible article link patterns
+                    link_selectors = [
+                        # Direct option flows links
+                        'a[href*="/option-flows/"]',
+                        'a[href*="/option-flow-"]',
+                        'a[href*="option-flows"]',
+                        # Common WordPress post selectors
+                        '.entry-title a',
+                        '.post-title a',
+                        'h2 a',
+                        'h3 a',
+                        'h4 a',
+                        '.entry-header a',
+                        '.post-header a',
+                        # Article containers
+                        'article a[href*="/option-flows/"]',
+                        '.post a[href*="/option-flows/"]',
+                        '.entry a[href*="/option-flows/"]',
+                        # Content area links
+                        '.content a[href*="/option-flows/"]',
+                        '#content a[href*="/option-flows/"]',
+                        '.main a[href*="/option-flows/"]',
+                        # Grid and listing patterns
+                        '.wp-block-latest-posts a',
+                        '.post-list a',
+                        '.archive-list a'
+                    ]
+                    
+                    for selector in link_selectors:
+                        links = soup.select(selector)
+                        for link in links:
+                            href = link.get('href')
+                            if href:
+                                full_url = urljoin("https://insights.deribit.com", href)
+                                # More comprehensive URL validation
+                                if (self.is_option_flows_url(full_url) and 
+                                    full_url not in self.processed_urls and
+                                    full_url != page_url and  # Don't include category page itself
+                                    not full_url.endswith('/option-flows/') and  # Skip category page
+                                    '/page/' not in full_url):  # Skip pagination URLs
+                                    
+                                    page_links.add(full_url)
+                    
+                    # Also look for any links containing option flow keywords in text
+                    all_links = soup.find_all('a', href=True)
+                    for link in all_links:
+                        href = link.get('href')
+                        link_text = link.get_text(strip=True).lower()
+                        
+                        if href and any(keyword in link_text for keyword in ['option flow', 'flows', 'options']):
+                            full_url = urljoin("https://insights.deribit.com", href)
+                            if (self.is_option_flows_url(full_url) and 
+                                full_url not in self.processed_urls and
+                                full_url != page_url):
+                                page_links.add(full_url)
+                    
+                    logger.info(f"Found {len(page_links)} unique article links on page {page}")
+                    
+                    # If no new links found, we've reached the end
+                    if not page_links:
+                        logger.info(f"No new articles found on page {page}, stopping pagination")
+                        break
+                    
+                    # Add new links to our master set
+                    new_links = page_links - article_links
+                    article_links.update(new_links)
+                    
+                    logger.info(f"Added {len(new_links)} new article URLs (Total: {len(article_links)})")
+                    
+                    # Check for next page indicators
+                    next_page_found = False
+                    next_indicators = [
+                        '.next-page', '.next-posts-link', '.nav-next',
+                        'a[href*="/page/' + str(page + 1) + '"]',
+                        'a:contains("Next")', 'a:contains(">")'
+                    ]
+                    
+                    for indicator in next_indicators:
+                        if soup.select(indicator):
+                            next_page_found = True
+                            break
+                    
+                    # If no next page indicator and no new links, stop
+                    if not next_page_found and not new_links:
+                        logger.info("No next page indicator found, stopping pagination")
+                        break
+                        
+                except Exception as e:
+                    logger.error(f"Failed to scrape page {page}: {e}")
+                    break
+                
+                page += 1
+            
+            logger.info(f"Pagination complete. Found {len(article_links)} total article URLs across {page-1} pages")
+            
+            # Now extract metadata for each discovered article
+            logger.info("Starting metadata extraction for discovered articles...")
+            
+            for i, url in enumerate(article_links, 1):
+                try:
+                    await asyncio.sleep(settings.request_delay)  # Rate limiting
+                    
+                    logger.info(f"Processing article {i}/{len(article_links)}: {url}")
                     
                     article_response = await self.session.get(url)
                     article_response.raise_for_status()
@@ -182,20 +288,22 @@ class BulletproofScraper:
                         'author': author,
                         'published_at': published_at,
                         'source': 'html_scraping',
-                        'discovery_method': 'html'
+                        'discovery_method': 'html_pagination'
                     }
                     
                     articles.append(article_data)
                     self.processed_urls.add(url)
                     
+                    logger.info(f"Successfully processed: {title[:50]}...")
+                    
                 except Exception as e:
-                    logger.error(f"Failed to extract metadata for {url}", error=str(e))
+                    logger.error(f"Failed to extract metadata for {url}: {e}")
                     continue
             
-            logger.info(f"Discovered {len(articles)} articles via HTML scraping")
+            logger.info(f"HTML discovery with pagination found {len(articles)} articles total")
             
         except Exception as e:
-            logger.error("HTML discovery failed", error=str(e))
+            logger.error("HTML discovery with pagination failed", error=str(e))
         
         return articles
     
@@ -493,6 +601,28 @@ class BulletproofScraper:
                 return element.get_text(strip=True)
         
         return "Tony Stewart"  # Default author for Deribit option flows
+    
+    def _extract_summary(self, soup: BeautifulSoup) -> str:
+        """Extract article summary/excerpt from HTML."""
+        # Try various summary selectors
+        summary_selectors = [
+            '.entry-excerpt',
+            '.post-excerpt', 
+            '.excerpt',
+            '.summary',
+            '.entry-content p:first-child',
+            '.post-content p:first-child',
+            '.content p:first-child'
+        ]
+        
+        for selector in summary_selectors:
+            element = soup.select_one(selector)
+            if element and element.get_text(strip=True):
+                text = element.get_text(strip=True)
+                # Limit summary length
+                return text[:300] + '...' if len(text) > 300 else text
+        
+        return ""
     
     def _extract_published_date(self, soup: BeautifulSoup) -> Optional[datetime]:
         """Extract published date from HTML."""
