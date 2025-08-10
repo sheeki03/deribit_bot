@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: deribit_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-deribit_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-deribit_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-deribit_flows}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-deribit_user}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: deribit_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  app:
+    build: .
+    container_name: deribit_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  streamlit:
+    build: .
+    container_name: deribit_streamlit
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    command: streamlit run app/ui/dashboard.py --server.port=8501 --server.address=0.0.0.0
+
+  worker:
+    build: .
+    container_name: deribit_worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    command: celery -A app.tasks.worker worker --loglevel=info
+
+  scheduler:
+    build: .
+    container_name: deribit_scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - .env
+    command: celery -A app.tasks.worker beat --loglevel=info
+
+volumes:
+  postgres_data:
+  redis_data:

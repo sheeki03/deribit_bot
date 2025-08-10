@@ -1,0 +1,107 @@
+[tool.poetry]
+name = "deribit-option-flows"
+version = "0.1.0"
+description = "Bulletproof multimodal Deribit option flows sentiment analysis system"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Web scraping & HTTP
+requests = "^2.31.0"
+httpx = "^0.25.0"
+beautifulsoup4 = "^4.12.2"
+feedparser = "^6.0.10"
+selectolax = "^0.3.17"
+
+# Database & ORM
+sqlalchemy = "^2.0.20"
+alembic = "^1.12.0"
+psycopg2-binary = "^2.9.7"
+asyncpg = "^0.28.0"
+
+# Data processing
+pandas = "^2.1.0"
+polars = "^0.19.0"
+numpy = "^1.24.0"
+pyarrow = "^13.0.0"
+
+# NLP & ML
+transformers = "^4.33.0"
+torch = "^2.0.1"
+sentence-transformers = "^2.2.2"
+vaderSentiment = "^3.3.2"
+spacy = "^3.6.1"
+
+# ML Models
+scikit-learn = "^1.3.0"
+xgboost = "^1.7.6"
+lightgbm = "^4.0.0"
+feature-engine = "^1.6.2"
+optuna = "^3.3.0"
+joblib = "^1.3.2"
+
+# Text Processing
+nltk = "^3.8.1"
+textstat = "^0.7.3"
+wordcloud = "^1.9.2"
+
+# Computer Vision & OCR
+opencv-python = "^4.8.0"
+Pillow = "^10.0.0"
+easyocr = "^1.7.0"
+pytesseract = "^0.3.10"
+
+# API clients
+openai = "^1.3.0"  # For OpenRouter compatibility
+
+# Web framework & UI
+fastapi = "^0.103.0"
+uvicorn = "^0.23.0"
+streamlit = "^1.26.0"
+plotly = "^5.15.0"
+
+# Telegram bot
+python-telegram-bot = "^20.5"
+
+# Market data (CoinGecko)
+pycoingecko = "^3.1.0"
+
+# Utilities
+pydantic = "^2.3.0"
+python-dotenv = "^1.0.0"
+structlog = "^23.1.0"
+tenacity = "^8.2.3"
+schedule = "^1.2.0"
+celery = "^5.3.1"
+redis = "^4.6.0"
+
+# Testing & development
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
+black = "^23.7.0"
+isort = "^5.12.0"
+flake8 = "^6.0.0"
+mypy = "^1.5.0"
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.0.0"
+notebook = "^7.0.0"
+ipykernel = "^6.25.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
