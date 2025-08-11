@@ -56,6 +56,11 @@ class FlowScorer:
         logger.info(f"Scoring article: {article_title}")
         
         try:
+            # Map cleaned field if present
+            if not article_data.get('body_markdown') and not article_data.get('body_html'):
+                if article_data.get('body_text'):
+                    article_data['body_markdown'] = article_data.get('body_text')
+
             # Validate article data
             if not self._validate_article_data(article_data):
                 logger.warning(f"Article validation failed: {article_url}")
@@ -107,7 +112,8 @@ class FlowScorer:
     async def score_articles_batch(self, 
                                   articles_data: List[Dict],
                                   assets: List[str] = None,
-                                  max_concurrent: int = 5) -> Dict[str, Dict[str, FlowScoreComponents]]:
+                                  max_concurrent: int = 5,
+                                  enrich_market_data: bool = True) -> Dict[str, Dict[str, FlowScoreComponents]]:
         """
         Score multiple articles efficiently with concurrency control.
         
@@ -129,7 +135,7 @@ class FlowScorer:
         
         async def score_with_semaphore(article_data):
             async with semaphore:
-                return await self.score_article(article_data, assets)
+                return await self.score_article(article_data, assets, enrich_market_data=enrich_market_data)
         
         # Execute batch scoring
         scoring_tasks = [score_with_semaphore(article) for article in articles_data]
@@ -279,7 +285,7 @@ class FlowScorer:
     def _create_neutral_scores(self, assets: List[str], reason: str) -> Dict[str, FlowScoreComponents]:
         """Create neutral scores for all assets."""
         return {
-            asset: ensemble_scorer._create_neutral_score(reason)
+            asset: ensemble_scorer.create_neutral_score(reason)
             for asset in assets
         }
     
@@ -348,9 +354,9 @@ class FlowScorer:
                     'min_score': np.min(scores),
                     'max_score': np.max(scores),
                     'mean_confidence': np.mean(confidences),
-                    'bullish_ratio': sum(1 for s in scores if s > 0.1) / len(scores),
-                    'bearish_ratio': sum(1 for s in scores if s < -0.1) / len(scores),
-                    'neutral_ratio': sum(1 for s in scores if -0.1 <= s <= 0.1) / len(scores)
+                    'bullish_ratio': sum(1 for s in scores if s > 0.1) / len(scores) if scores else 0,
+                    'bearish_ratio': sum(1 for s in scores if s < -0.1) / len(scores) if scores else 0,
+                    'neutral_ratio': sum(1 for s in scores if -0.1 <= s <= 0.1) / len(scores) if scores else 0
                 }
         
         # Add ensemble statistics

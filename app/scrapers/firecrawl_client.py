@@ -16,13 +16,17 @@ class FirecrawlClient:
     
     def __init__(self):
         self.base_url = settings.firecrawl_base_url.rstrip('/')
+        self.api_url = settings.firecrawl_api_url
         self.api_key = settings.firecrawl_api_key
+        
+        # Build headers - only add Authorization if API key exists
+        headers = {'Content-Type': 'application/json'}
+        if self.api_key:
+            headers['Authorization'] = f'Bearer {self.api_key}'
+        
         self.client = httpx.AsyncClient(
             timeout=120.0,
-            headers={
-                'Authorization': f'Bearer {self.api_key}',
-                'Content-Type': 'application/json'
-            }
+            headers=headers
         )
     
     async def __aenter__(self):
@@ -183,51 +187,20 @@ class FirecrawlClient:
             Scraping results or None if failed
         """
         try:
+            # Use simplified payload format that works with this Firecrawl instance
             payload = {
                 "url": url,
-                "scrapeOptions": {
-                    "onlyMainContent": True,
-                    "formats": ["markdown", "html"],
-                    "timeout": 120000,
-                    "includeImages": include_images
-                }
+                "formats": ["markdown", "html"]
             }
             
-            # Add structured extraction if requested
-            if extract_schema:
-                payload["jsonOptions"] = {
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "title": {"type": "string"},
-                            "author": {"type": "string"},
-                            "published_iso": {"type": "string"},
-                            "key_phrases": {
-                                "type": "array", 
-                                "items": {"type": "string"}
-                            },
-                            "option_terms": {
-                                "type": "array",
-                                "items": {"type": "string"}
-                            },
-                            "numerical_data": {
-                                "type": "object",
-                                "properties": {
-                                    "strikes": {"type": "array", "items": {"type": "string"}},
-                                    "notionals": {"type": "array", "items": {"type": "string"}},
-                                    "dates": {"type": "array", "items": {"type": "string"}}
-                                }
-                            }
-                        }
-                    },
-                    "systemPrompt": "You are extracting metadata and key information from Deribit Option Flow posts.",
-                    "prompt": "Extract the title, author, publication date, key phrases related to options trading (calls, puts, strikes, flows, gamma, skew), and any numerical data (strike prices, notional amounts, dates)."
-                }
-                payload["formats"] = ["json"]
+            # Add images to formats if needed (Firecrawl typically includes images in markdown automatically)
+            if include_images:
+                # Images are usually included automatically in the markdown/html output
+                pass
             
             logger.info(f"Scraping URL: {url}")
             
-            response = await self.client.post(f"{self.base_url}/v1/scrape", json=payload)
+            response = await self.client.post(self.api_url, json=payload)
             response.raise_for_status()
             
             result = response.json()

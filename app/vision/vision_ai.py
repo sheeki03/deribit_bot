@@ -428,7 +428,7 @@ class VisionAIAnalyzer:
             sentiment_mapping = {'bullish': 1, 'bearish': -1, 'neutral': 0}
             sentiment_values = [sentiment_mapping.get(s.lower(), 0) for s in sentiments]
             
-            avg_sentiment = sum(sentiment_values) / len(sentiment_values)
+            avg_sentiment = sum(sentiment_values) / len(sentiment_values) if sentiment_values else 0
             
             if avg_sentiment > 0.3:
                 combined_sentiment = 'bullish'

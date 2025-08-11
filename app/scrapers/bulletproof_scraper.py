@@ -399,6 +399,14 @@ class BulletproofScraper:
     
     async def _scrape_html_content(self, url: str) -> Optional[Dict]:
         """Scrape article content using direct HTML parsing."""
+        # Ensure session is available
+        if self.session is None or self.session.is_closed:
+            self.session = httpx.AsyncClient(
+                timeout=30.0,
+                headers={'User-Agent': settings.user_agent},
+                follow_redirects=True
+            )
+        
         response = await self.session.get(url)
         response.raise_for_status()
         

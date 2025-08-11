@@ -1,0 +1,63 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Python cache and environments
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+# Environment files (prevent secrets leakage)
+.env
+.env.*
+# But include template files
+!.env.example
+!.env.template
+
+# Development and testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+test-results/
+test_data/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation and README files
+*.md
+docs/
+
+# Data and logs
+data/
+images/
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+tmp/
+
+# Node modules (if any)
+node_modules/
+
+# Docker files themselves
+Dockerfile*
+docker-compose*.yml
+.dockerignore

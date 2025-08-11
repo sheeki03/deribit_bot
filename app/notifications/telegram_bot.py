@@ -1,7 +1,7 @@
 import asyncio
 import io
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Union
 from pathlib import Path
 
@@ -29,8 +29,16 @@ class TelegramNotifier:
     """
     
     def __init__(self):
-        self.bot = Bot(token=settings.telegram_bot_token)
-        self.chat_id = settings.telegram_chat_id
+        # Handle optional Telegram configuration
+        if settings.telegram_bot_token and settings.telegram_chat_id:
+            self.bot = Bot(token=settings.telegram_bot_token)
+            self.chat_id = settings.telegram_chat_id
+            self.enabled = True
+        else:
+            self.bot = None
+            self.chat_id = None
+            self.enabled = False
+            logger.info("Telegram notifications disabled (no credentials provided)")
         
         # Alert configuration
         self.alert_config = {
@@ -80,6 +88,11 @@ class TelegramNotifier:
             True if alert was sent successfully
         """
         try:
+            # Check if Telegram is enabled
+            if not self.enabled:
+                logger.debug("Telegram notifications disabled, skipping alert")
+                return False
+                
             # Check if alert should be sent
             if not self._should_send_alert(asset_scores):
                 return False
@@ -426,6 +439,11 @@ class TelegramNotifier:
                                      include_stats: bool = False) -> bool:
         """Send system status notification."""
         
+        # Check if Telegram is enabled
+        if not self.enabled or self.bot is None:
+            logger.info("Telegram notifications disabled, skipping system notification")
+            return False
+            
         try:
             template = self.templates.get(level, self.templates['info'])
             
@@ -454,6 +472,11 @@ class TelegramNotifier:
     async def send_daily_summary(self, summary_data: Dict) -> bool:
         """Send daily summary of FlowScore activity."""
         
+        # Check if Telegram is enabled
+        if not self.enabled or self.bot is None:
+            logger.info("Telegram notifications disabled, skipping daily summary")
+            return False
+            
         try:
             message = "📊 **Daily Option Flows Summary**\n\n"
             
@@ -539,6 +562,11 @@ class TelegramNotifier:
     
     async def test_connection(self) -> bool:
         """Test Telegram bot connection."""
+        # Check if Telegram is enabled
+        if not self.enabled or self.bot is None:
+            logger.info("Telegram notifications disabled, skipping connection test")
+            return False
+            
         try:
             bot_info = await self.bot.get_me()
             logger.info(f"Telegram bot connected: @{bot_info.username}")

@@ -529,9 +529,9 @@ class EnsembleFlowScorer:
                 'mean_score': np.mean(scores),
                 'mean_confidence': np.mean(confidences),
                 'score_volatility': np.std(scores),
-                'bullish_ratio': sum(1 for s in scores if s > 0.1) / len(scores),
-                'bearish_ratio': sum(1 for s in scores if s < -0.1) / len(scores),
-                'neutral_ratio': sum(1 for s in scores if -0.1 <= s <= 0.1) / len(scores)
+                'bullish_ratio': sum(1 for s in scores if s > 0.1) / len(scores) if scores else 0,
+                'bearish_ratio': sum(1 for s in scores if s < -0.1) / len(scores) if scores else 0,
+                'neutral_ratio': sum(1 for s in scores if -0.1 <= s <= 0.1) / len(scores) if scores else 0
             },
             'component_stats': components_stats,
             'model_weights': self.model_weights

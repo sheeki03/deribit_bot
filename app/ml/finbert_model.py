@@ -428,7 +428,7 @@ class FinBERTSentimentModel:
                 'total_predictions': len(self.prediction_history),
                 'recent_avg_confidence': np.mean(confidences) if confidences else 0,
                 'recent_sentiment_distribution': {
-                    sentiment: sentiments.count(sentiment) / len(sentiments)
+                    sentiment: sentiments.count(sentiment) / len(sentiments) if sentiments else 0
                     for sentiment in set(sentiments)
                 } if sentiments else {}
             })
@@ -484,7 +484,7 @@ class FinBERTSentimentModel:
             avg_batch_time = np.mean(batch_times)
             results.update({
                 'batch_prediction_avg_ms': avg_batch_time * 1000,
-                'batch_throughput_texts_per_sec': len(test_texts) / avg_batch_time,
+                'batch_throughput_texts_per_sec': len(test_texts) / avg_batch_time if avg_batch_time > 0 else 0,
                 'batch_size': len(test_texts)
             })
         

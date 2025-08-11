@@ -1,34 +1,36 @@
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 from typing import Optional
 import os
 
 
 class Settings(BaseSettings):
-    # Database
-    database_url: str = Field(..., env="DATABASE_URL")
+    # Database (optional - system works without it)
+    database_url: Optional[str] = Field(None, env="DATABASE_URL")
     
-    # Firecrawl
-    firecrawl_api_key: str = Field(..., env="FIRECRAWL_API_KEY")
+    # Firecrawl (no API key needed)
+    firecrawl_api_key: Optional[str] = Field(None, env="FIRECRAWL_API_KEY") 
     firecrawl_base_url: str = Field(..., env="FIRECRAWL_BASE_URL")
+    firecrawl_api_url: str = Field(..., env="FIRECRAWL_API_URL")
     
     # AI/ML (OpenRouter)
     openrouter_api_key: str = Field(..., env="OPENROUTER_API_KEY")
     
-    # Telegram
-    telegram_bot_token: str = Field(..., env="TELEGRAM_BOT_TOKEN")
-    telegram_chat_id: str = Field(..., env="TELEGRAM_CHAT_ID")
+    # Telegram (optional for now)
+    telegram_bot_token: Optional[str] = Field(None, env="TELEGRAM_BOT_TOKEN")
+    telegram_chat_id: Optional[str] = Field(None, env="TELEGRAM_CHAT_ID")
     
     # Market Data (CoinGecko)
     coingecko_api_key: Optional[str] = Field(None, env="COINGECKO_API_KEY")
     coingecko_base_url: str = Field("https://api.coingecko.com/api/v3", env="COINGECKO_BASE_URL")
     
-    # Redis
-    redis_url: str = Field("redis://localhost:6379/0", env="REDIS_URL")
+    # Redis (optional - system works without it)
+    redis_url: Optional[str] = Field(None, env="REDIS_URL")
     
     # Application
     debug: bool = Field(False, env="DEBUG")
     log_level: str = Field("INFO", env="LOG_LEVEL")
-    webhook_secret: str = Field(..., env="WEBHOOK_SECRET")
+    webhook_secret: Optional[str] = Field(None, env="WEBHOOK_SECRET")
     
     # Scraping
     user_agent: str = Field(

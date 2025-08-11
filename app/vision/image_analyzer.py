@@ -61,13 +61,29 @@ class BulletproofImageAnalyzer:
         }
     
     def _init_ocr(self):
-        """Initialize OCR reader with error handling."""
+        """Initialize OCR reader with GPU acceleration and error handling."""
         try:
-            self.ocr_reader = easyocr.Reader(['en'], gpu=False)
-            logger.info("OCR reader initialized successfully")
+            # Try GPU first, fallback to CPU if not available
+            import torch
+            gpu_available = torch.cuda.is_available() or torch.backends.mps.is_available()
+            
+            self.ocr_reader = easyocr.Reader(['en'], gpu=gpu_available)
+            
+            if gpu_available:
+                device_type = "CUDA" if torch.cuda.is_available() else "MPS"
+                logger.info(f"OCR reader initialized with {device_type} GPU acceleration")
+            else:
+                logger.info("OCR reader initialized with CPU (no GPU available)")
+                
         except Exception as e:
             logger.error("Failed to initialize OCR reader", error=str(e))
-            self.ocr_reader = None
+            # Fallback to CPU if GPU initialization fails
+            try:
+                self.ocr_reader = easyocr.Reader(['en'], gpu=False)
+                logger.info("OCR reader initialized with CPU fallback")
+            except Exception as e2:
+                logger.error("Failed to initialize OCR reader with CPU fallback", error=str(e2))
+                self.ocr_reader = None
     
     async def download_image(self, image_url: str, max_size_mb: int = 10) -> Optional[bytes]:
         """

@@ -833,6 +833,56 @@ class DeribitFlowsDashboard:
                 for key in st.session_state.keys():
                     del st.session_state[key]
                 st.rerun()
+
+        # Scoring utilities
+        st.markdown("### 🧪 Sample Scoring (Cleaned Articles)")
+        col1, col2 = st.columns(2)
+        with col1:
+            sample_size = st.slider("Sample Size", min_value=5, max_value=50, value=15, step=5,
+                                    help="Number of cleaned articles to score from scraped_data/cleaned")
+        with col2:
+            no_market = st.checkbox("Skip Market Enrichment", value=True,
+                                     help="Avoids external price lookups for faster scoring")
+        if st.button("⚡ Score Sample Cleaned Articles"):
+            try:
+                cleaned_path = Path("scraped_data/cleaned/articles_cleaned.json")
+                if not cleaned_path.exists():
+                    st.error(f"Cleaned file not found: {cleaned_path}")
+                else:
+                    with cleaned_path.open("r", encoding="utf-8") as f:
+                        articles = json.load(f)
+                    # Use a subset and map cleaned body_text to expected field
+                    subset = []
+                    for a in articles[:sample_size]:
+                        a = dict(a)
+                        if not a.get('body_markdown') and a.get('body_text'):
+                            a['body_markdown'] = a['body_text']
+                        subset.append(a)
+
+                    # Load FinBERT if not loaded
+                    if not finbert_model.is_loaded:
+                        finbert_model.load_model()
+
+                    # Run scoring synchronously
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        loop.run_until_complete(
+                            flow_scorer.score_articles_batch(
+                                subset,
+                                assets=['BTC','ETH'],
+                                max_concurrent=4,
+                                enrich_market_data=not no_market
+                            )
+                        )
+                    finally:
+                        loop.close()
+
+                    st.success(f"Scored {len(subset)} articles. Check Live Feed and Analytics tabs.")
+                    st.session_state.last_refresh = datetime.now()
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Scoring failed: {e}")
         
         # System information
         st.markdown("### 📊 System Information")

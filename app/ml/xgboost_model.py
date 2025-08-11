@@ -496,12 +496,12 @@ class XGBoostSentimentModel:
             times.append(end_time - start_time)
         
         avg_time = np.mean(times)
-        per_sample_time = avg_time / len(X_scaled) * 1000  # ms per sample
+        per_sample_time = (avg_time / len(X_scaled) * 1000) if len(X_scaled) > 0 else 0  # ms per sample
         
         return {
             'avg_batch_time_ms': avg_time * 1000,
             'per_sample_time_ms': per_sample_time,
-            'throughput_samples_per_sec': len(X_scaled) / avg_time,
+            'throughput_samples_per_sec': len(X_scaled) / avg_time if avg_time > 0 else 0,
             'batch_size': len(X_scaled),
             'n_iterations': n_iterations
         }
