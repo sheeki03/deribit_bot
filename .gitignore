@@ -143,8 +143,13 @@ yarn-error.log
 # Test artifacts
 test-results/
 test-outputs/
+test_results/
 coverage.xml
 *.coverage
+
+# Vision processing artifacts  
+*.progress.json
+*.metrics.json
 .cursorrules
 .cursor/scratchpad.md
 .windsurfrules

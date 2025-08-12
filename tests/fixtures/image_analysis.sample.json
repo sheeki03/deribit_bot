@@ -1,0 +1,84 @@
+{
+  "metadata": {
+    "unknown_directory": "data/images/unknown",
+    "output_directory": "test_results/",
+    "timestamp": "1970-01-01T00:00:00Z",
+    "analyzer_version": "BulletproofImageAnalyzer_v1.0"
+  },
+  "results": [
+    {
+      "processing": {
+        "success": true,
+        "status": "ok",
+        "error_code": null,
+        "error_message": null,
+        "processing_time": 0.001,
+        "retry_count": 0
+      },
+      "inference": {
+        "task": "image_analysis",
+        "model": "qwen2.5-vl-32b",
+        "version": "v1.0",
+        "classification": null,
+        "confidence": 0.0
+      },
+      "image_path": "data/images/1fac60572b39d616f8cc71f347b3c8f7c9a61775f2008b22041240b2f6795b38.jpeg",
+      "ocr_text": null,
+      "numerical_data": {},
+      "sentiment": {},
+      "errors": [],
+      "request_id": "req_120927"
+    },
+    {
+      "processing": {
+        "success": true,
+        "status": "ok",
+        "error_code": null,
+        "error_message": null,
+        "processing_time": 0.001,
+        "retry_count": 0
+      },
+      "inference": {
+        "task": "image_analysis",
+        "model": "qwen2.5-vl-32b",
+        "version": "v1.0",
+        "classification": null,
+        "confidence": 0.0
+      },
+      "image_path": "data/images/2f739aa7140316d7ddd82ee18b1128be58f0cec36dd0dec543a6d6d9f4053af9.jpeg",
+      "ocr_text": null,
+      "numerical_data": {},
+      "sentiment": {},
+      "errors": [],
+      "request_id": "req_340396"
+    },
+    {
+      "processing": {
+        "success": true,
+        "status": "ok",
+        "error_code": null,
+        "error_message": null,
+        "processing_time": 0.001,
+        "retry_count": 0
+      },
+      "inference": {
+        "task": "image_analysis",
+        "model": "qwen2.5-vl-32b",
+        "version": "v1.0",
+        "classification": null,
+        "confidence": 0.0
+      },
+      "image_path": "data/images/48bbd3a3ebef48fcf5e9c167b554cf60fc873dbe5cf313f5a4e54609259ce0b0.png",
+      "ocr_text": null,
+      "numerical_data": {},
+      "sentiment": {},
+      "errors": [],
+      "request_id": "req_671951"
+    }
+  ],
+  "summary": {
+    "total_processed": 3,
+    "successful": 3,
+    "errors": 0
+  }
+}

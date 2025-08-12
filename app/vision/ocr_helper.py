@@ -26,16 +26,34 @@ class OCRConfig:
     custom_config: str = ''
     
     def to_tesseract_config(self) -> str:
-        """Convert to tesseract config string."""
-        base_config = f'--oem {self.oem} --psm {self.psm} -l {self.language}'
-        if self.dpi != 300:
-            base_config += f' --dpi {self.dpi}'
+        """Convert to tesseract config string with safe parameter handling."""
+        # Validate and sanitize parameters
+        safe_language = ''.join(c for c in self.language if c.isalnum())
+        if not safe_language:
+            safe_language = 'eng'
+            
+        safe_oem = max(0, min(3, int(self.oem)))
+        safe_psm = max(0, min(13, int(self.psm)))
+        safe_dpi = max(70, min(2400, int(self.dpi)))
+        
+        base_config = f'--oem {safe_oem} --psm {safe_psm} -l {safe_language}'
+        if safe_dpi != 300:
+            base_config += f' --dpi {safe_dpi}'
+            
+        # Sanitize custom config to prevent command injection
         if self.custom_config:
-            base_config += f' {self.custom_config}'
+            sanitized_config = _sanitize_tesseract_config(self.custom_config)
+            if sanitized_config:
+                base_config += f' {sanitized_config}'
+                
         return base_config
 
 def _preprocess_image(img: 'Image.Image', config: OCRConfig) -> 'Image.Image':
     """Apply image preprocessing to improve OCR accuracy."""
+    # Input validation
+    if not isinstance(img, Image.Image) or img is None:
+        raise TypeError("Input must be a valid PIL Image instance")
+    
     if not (ImageEnhance and ImageFilter):
         return img
         
@@ -150,8 +168,26 @@ def ocr_image_detailed(path: str, config: Optional[OCRConfig] = None) -> Dict[st
             'error': str(e)
         }
 
+def _sanitize_tesseract_config(config: str) -> str:
+    """Sanitize tesseract config to prevent command injection."""
+    # Define allowed characters for tesseract config
+    allowed_chars = set('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,%-+$€£¥₿:/()[]{}"\' =-_')
+    
+    # Remove potentially dangerous characters
+    sanitized = ''.join(c for c in config if c in allowed_chars)
+    
+    # Remove shell-sensitive patterns
+    dangerous_patterns = ['&&', '||', ';', '|', '`', '$(']
+    for pattern in dangerous_patterns:
+        sanitized = sanitized.replace(pattern, '')
+    
+    return sanitized
+
 def get_optimal_ocr_config_for_charts() -> OCRConfig:
     """Get OCR configuration optimized for financial charts and trading interfaces."""
+    # Use a safer character whitelist
+    safe_whitelist = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,%-+$:/()[]{}"\' '
+    
     return OCRConfig(
         language='eng',
         dpi=300,
@@ -160,7 +196,7 @@ def get_optimal_ocr_config_for_charts() -> OCRConfig:
         enhance_contrast=True,
         enhance_sharpness=True,
         apply_threshold=True,
-        custom_config='-c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,%-+$€£¥₿:/()[]{}"\' \\ '
+        custom_config=f'-c tessedit_char_whitelist={safe_whitelist}'
     )
 
 # Backward compatibility

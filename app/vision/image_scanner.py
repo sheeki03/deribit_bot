@@ -154,7 +154,7 @@ def analyze_images(pairs: List[Tuple[Optional[str], str]], cfg: ScanConfig) -> D
                     "total_images_in_output": len(existing_results) + len(new_records),
                     "last_processed_path": new_records[-1]["path"] if new_records else None,
                     "final": final,
-                    "memory_usage_mb": _get_memory_usage_mb()
+                    "memory_usage_mb": _get_memory_usage_mb_safe()
                 }
                 progress_path.parent.mkdir(parents=True, exist_ok=True)
                 
@@ -332,13 +332,14 @@ def main() -> int:
     return 0
 
 
-def _get_memory_usage_mb() -> float:
-    """Get current memory usage in MB."""
+def _get_memory_usage_mb_safe() -> float:
+    """Get current memory usage in MB with error handling."""
     try:
-        import psutil
-        return psutil.Process().memory_info().rss / 1024 / 1024
-    except ImportError:
-        return 0.0
+        from .utils import get_memory_usage_mb
+        return get_memory_usage_mb()
+    except Exception as e:
+        logger.warning(f"Failed to get memory usage: {e}")
+        return -1.0
 
 if __name__ == "__main__":
     raise SystemExit(main())

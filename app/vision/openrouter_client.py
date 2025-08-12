@@ -5,9 +5,12 @@ import base64
 from typing import Any, Dict, List, Optional
 import json
 import time
+import logging
 from functools import lru_cache
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 OPENROUTER_BASE = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
