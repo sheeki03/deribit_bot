@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import asyncio
 import json
 from pathlib import Path
+import os
 from typing import Dict, List, Optional
 import base64
 
@@ -65,8 +66,8 @@ class DeribitFlowsDashboard:
         self.render_sidebar()
         
         # Main dashboard tabs
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            "📊 Live Feed", "🎯 Analytics", "🖼️ Images", "🤖 Models", "📈 Backtest", "⚙️ System"
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+            "📊 Live Feed", "🎯 Analytics", "🖼️ Images", "🤖 Models", "📈 Backtest", "⚙️ System", "📰 Sentiment vs Price"
         ])
         
         with tab1:
@@ -86,6 +87,9 @@ class DeribitFlowsDashboard:
         
         with tab6:
             self.render_system_tab()
+        
+        with tab7:
+            self.render_sentiment_vs_price_tab()
     
     def inject_custom_css(self):
         """Inject custom CSS for better UI."""
@@ -396,6 +400,249 @@ class DeribitFlowsDashboard:
         
         st.plotly_chart(fig, use_container_width=True)
     
+    def render_sentiment_vs_price_tab(self, base_dir: Optional[str] = None):
+        """Render Weekly Notes sentiment vs price analysis visuals."""
+        st.markdown('<div class="main-header">📰 Weekly Notes: Sentiment vs Price</div>', unsafe_allow_html=True)
+        
+        # File paths
+        default_base = os.getenv("WEEKLY_NOTES_RESULTS_DIR", "test_results")
+        base = Path(base_dir or default_base)
+        base.mkdir(parents=True, exist_ok=True)
+        summary_path = base / "weekly_notes_summary.json"
+        per_article_csv = base / "weekly_notes_analysis.csv"
+        
+        # Controls
+        colA, colB, colC = st.columns([1,1,2])
+        with colA:
+            asset = st.selectbox("Asset", options=["BTC", "ETH"], index=0)
+        with colB:
+            horizon = st.selectbox("Horizon (hours)", options=[24, 72, 168], index=2)
+        with colC:
+            st.caption("Data sources: per-article analysis CSV and aggregated summary JSON.")
+        
+        # Load per-article rows
+        rows_df = None
+        if per_article_csv.exists():
+            try:
+                rows_df = pd.read_csv(per_article_csv)
+            except Exception as e:
+                st.warning(f"Failed to read per-article CSV: {e}")
+        else:
+            st.info(f"Per-article CSV not found at {per_article_csv}")
+        
+        # Load summary JSON
+        summary = None
+        if summary_path.exists():
+            try:
+                summary = json.loads(summary_path.read_text())
+            except Exception as e:
+                st.warning(f"Failed to read summary JSON: {e}")
+        else:
+            st.info(f"Summary JSON not found at {summary_path}")
+        
+        # Bucket stats and hit rates
+        st.markdown("### 📊 Bucket Stats and Hit Rates")
+        if summary and "assets" in summary and asset in summary["assets"]:
+            try:
+                selected_h = int(horizon)
+            except Exception:
+                selected_h = horizon
+            try:
+                summary_h = int(summary.get("horizon_hours")) if summary.get("horizon_hours") is not None else None
+            except Exception:
+                summary_h = summary.get("horizon_hours")
+            if summary_h != selected_h:
+                st.info("Summary horizon does not match the selected horizon. Adjust selection or regenerate summary.")
+            
+            if summary_h == selected_h:
+                sec = summary["assets"][asset]
+                bs = pd.DataFrame(sec.get("bucket_stats", []))
+                hr = pd.DataFrame(sec.get("hit_rates", []))
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("#### Bucket Stats")
+                    if not bs.empty:
+                        st.dataframe(bs, use_container_width=True)
+                    else:
+                        st.info("No bucket stats available.")
+                with col2:
+                    st.markdown("#### Hit Rates")
+                    if not hr.empty:
+                        st.dataframe(hr, use_container_width=True)
+                    else:
+                        st.info("No hit rates available.")
+        else:
+            st.info("Summary not available or horizon mismatch. Run the analysis pipeline first.")
+        
+        # Rolling trends chart
+        st.markdown("### 📈 4-Week Rolling Average Returns by Sentiment Bucket")
+        if summary and "assets" in summary and asset in summary["assets"]:
+            trends = pd.DataFrame(summary["assets"][asset].get("rolling_4w_trends", []))
+            if not trends.empty:
+                # Filter horizon implicitly matched by compute (uses selected horizon file)
+                fig = px.line(
+                    trends,
+                    x="week",
+                    y="rolling_avg_return",
+                    color="sentiment_bucket",
+                    markers=True,
+                    title=f"{asset} Rolling Avg Returns ({horizon}h)"
+                )
+                fig.update_layout(height=400, legend_title_text="Sentiment")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No rolling trends available.")
+        else:
+            st.info("Rolling trends not available.")
+        
+        # Per-article table (optional)
+        st.markdown("### 📰 Per-Article Results (preview)")
+        if rows_df is not None and not rows_df.empty:
+            ret_col = f"{asset}_ret_{horizon}h"
+            cols = [c for c in ["published_at_utc", "title", "sentiment", "confidence", ret_col, "url"] if c in rows_df.columns]
+            view = rows_df[cols].copy() if cols else rows_df.head(50)
+            st.dataframe(view.head(200), use_container_width=True)
+        else:
+            st.info("Per-article CSV not loaded.")
+
+        # Image display (URLs and/or local paths)
+        st.markdown("### 🖼️ Image Previews")
+        def _is_url(s: str) -> bool:
+            return isinstance(s, str) and (s.startswith("http://") or s.startswith("https://"))
+
+        def _resolve_local(p: str | Path) -> Optional[Path]:
+            try:
+                pth = Path(p)
+                if pth.is_file():
+                    return pth
+                # try relative to base dir
+                cand = base / pth
+                if cand.is_file():
+                    return cand
+                # try relative to dashboard file location
+                here = Path(__file__).parent
+                cand2 = (here / pth).resolve()
+                return cand2 if cand2.is_file() else None
+            except (OSError, PermissionError, ValueError) as e:
+                logger.warning(f"Error resolving path {p}: {e}")
+                return None
+
+        def _from_summary(summary, asset) -> List[str | Path]:
+            """Extract image strings/Paths from the summary asset section."""
+            imgs: List[str | Path] = []
+            try:
+                if summary and isinstance(summary, dict):
+                    asset_sec = summary.get("assets", {}).get(asset, {})
+                    for key in ["example_images", "images", "sample_images"]:
+                        vals = asset_sec.get(key, []) or []
+                        if isinstance(vals, list):
+                            imgs.extend([v for v in vals if isinstance(v, (str, Path))])
+                            break
+            except Exception as e:
+                logger.warning(f"Error extracting images from summary: {e}")
+            return imgs
+        
+        def _from_rows(rows_df) -> List[str | Path]:
+            """Iterate the first 50 rows and collect image values."""
+            imgs: List[str | Path] = []
+            if rows_df is None or rows_df.empty:
+                return imgs
+                
+            candidates = [
+                "image", "image_url", "image_path", "thumbnail", "images"
+            ]
+            present = [c for c in candidates if c in rows_df.columns]
+            
+            try:
+                for _, r in rows_df.head(50).iterrows():
+                    for c in present:
+                        v = r.get(c)
+                        if pd.isna(v):
+                            continue
+                        if c == "images":
+                            # Handle special "images" column
+                            parsed = _parse_images(v)
+                            imgs.extend(parsed)
+                        else:
+                            # Handle single-value columns
+                            imgs.append(v)
+            except Exception as e:
+                logger.warning(f"Error extracting images from rows: {e}")
+            return imgs
+        
+        def _parse_images(v) -> List[str | Path]:
+            """Parse a JSON array fallback or pipe-delimited string into a list of strings/Paths."""
+            imgs: List[str | Path] = []
+            try:
+                if isinstance(v, str) and v.strip():
+                    # Try JSON first
+                    try:
+                        arr = json.loads(v)
+                        if isinstance(arr, list):
+                            imgs.extend([x for x in arr if isinstance(x, (str, Path))])
+                    except json.JSONDecodeError:
+                        # Not JSON, try pipe-delimited
+                        parts = [p.strip() for p in str(v).split("|") if p.strip()]
+                        imgs.extend(parts)
+            except Exception as e:
+                logger.warning(f"Error parsing images value {v}: {e}")
+            return imgs
+        
+        def _collect_images() -> List[str | Path]:
+            """Collect images from summary and rows, deduplicate while preserving order."""
+            # Collect from both sources
+            summary_imgs = _from_summary(summary, asset)
+            rows_imgs = _from_rows(rows_df)
+            
+            # Merge outputs
+            all_imgs = summary_imgs + rows_imgs
+            
+            # Deduplicate while preserving order
+            seen = set()
+            uniq: List[str | Path] = []
+            for it in all_imgs:
+                key = str(it)
+                if key not in seen:
+                    seen.add(key)
+                    uniq.append(it)
+            
+            # Return first 12 entries
+            return uniq[:12]
+
+        images = _collect_images()
+        if images:
+            cols = st.columns(4)
+            shown = 0
+            for i, it in enumerate(images):
+                src: Optional[str | Path] = None
+                if isinstance(it, Path):
+                    src = _resolve_local(it)
+                elif _is_url(str(it)):
+                    src = str(it)
+                else:
+                    # treat as local path string
+                    loc = _resolve_local(str(it))
+                    src = loc if loc is not None else None
+                with cols[i % 4]:
+                    if isinstance(src, Path) and src is not None:
+                        try:
+                            st.image(str(src), use_container_width=True)
+                            shown += 1
+                        except Exception:
+                            st.caption(f"Failed to load image: {src}")
+                    elif isinstance(src, str) and _is_url(src):
+                        try:
+                            st.image(src, use_container_width=True)
+                            shown += 1
+                        except Exception:
+                            st.caption(f"Failed to load URL image: {src}")
+                    else:
+                        st.caption(f"Image not found or unsupported: {it}")
+            if shown == 0:
+                st.info("No valid images could be rendered from available sources.")
+        else:
+            st.info("No image references found in summary or per-article data.")
+    
     def render_analytics_tab(self):
         """Render analytics and statistics tab."""
         st.markdown('<div class="main-header">🎯 Analytics & Statistics</div>', unsafe_allow_html=True)
@@ -596,22 +843,109 @@ class DeribitFlowsDashboard:
     def render_images_tab(self):
         """Render image gallery and analysis tab."""
         st.markdown('<div class="main-header">🖼️ Image Gallery & Analysis</div>', unsafe_allow_html=True)
-        
-        st.info("Image gallery functionality will be implemented when article images are processed.")
-        
-        # Placeholder for image analysis
-        st.markdown("""
-        ### 🎨 Image Analysis Features
-        
-        This tab will display:
-        - **Chart Gallery**: All extracted charts and diagrams
-        - **Vision AI Analysis**: AI interpretation of each image
-        - **OCR Results**: Extracted text and numerical data
-        - **Image Classification**: Automatic categorization of chart types
-        - **Quality Metrics**: Image resolution, clarity, and processing confidence
-        
-        *Images will appear here as articles are processed...*
-        """)
+
+        # Controls
+        colA, colB = st.columns([1,1])
+        with colA:
+            limit = st.number_input("Max items to display", 1, 200, 20)
+        with colB:
+            show_raw = st.checkbox("Show raw JSON", value=False)
+
+        # Load analyzed results
+        analysis_path = Path("test_results/image_analysis.json")
+        if not analysis_path.exists():
+            st.info("No image analysis found. Run the image scanner to generate test_results/image_analysis.json.")
+            return
+        try:
+            data = json.loads(analysis_path.read_text())
+        except Exception as e:
+            st.error(f"Failed to load image analysis results: {e}")
+            return
+
+        images = data.get("images", [])
+        if not images:
+            st.info("image_analysis.json has no entries.")
+            return
+
+        # Grid display
+        shown = 0
+        for rec in images:
+            if shown >= limit:
+                break
+            with st.container():
+                cols = st.columns([1,2])
+                with cols[0]:
+                    p = rec.get("path")
+                    caption = rec.get("article") or "image"
+                    if isinstance(p, str) and (p.startswith("http://") or p.startswith("https://")):
+                        try:
+                            st.image(p, caption=caption)
+                        except Exception as e:
+                            st.text(f"(failed to load URL image: {e})")
+                    else:
+                        # Resolve local path relative to project if not absolute
+                        if isinstance(p, str) and not Path(p).is_absolute():
+                            resolved = (Path(__file__).parent / p).resolve()
+                        else:
+                            resolved = Path(p) if p else None
+                        if resolved and resolved.exists():
+                            st.image(str(resolved), caption=caption)
+                        else:
+                            st.text("(image not found)")
+                    st.caption(p or "")
+                with cols[1]:
+                    # Parsed GPT-5 JSON
+                    gpt5 = rec.get("gpt5")
+                    if gpt5:
+                        # Key fields if present
+                        chart_type = gpt5.get("chart_type")
+                        assets = gpt5.get("assets")
+                        timeframe = gpt5.get("timeframe")
+                        sentiment = gpt5.get("sentiment")
+                        reasoning = gpt5.get("reasoning") or gpt5.get("explanation")
+                        st.markdown("#### Vision Analysis")
+                        if chart_type:
+                            st.write(f"Chart: {chart_type}")
+                        if assets:
+                            st.write(f"Assets: {assets}")
+                        if timeframe:
+                            st.write(f"Timeframe: {timeframe}")
+                        if sentiment:
+                            st.write(f"Sentiment: {sentiment}")
+                        key_points = gpt5.get("key_points") or []
+                        if isinstance(key_points, list) and key_points:
+                            st.write("Key Points:")
+                            for kp in key_points[:8]:
+                                if isinstance(kp, dict):
+                                    st.write(f"- {kp.get('label', 'point')}: {kp.get('value')}")
+                                else:
+                                    st.write(f"- {kp}")
+                        key_text = gpt5.get("key_text")
+                        if key_text:
+                            with st.expander("Extracted Text (model)"):
+                                st.write(key_text)
+                        if reasoning and show_raw:
+                            with st.expander("Model Reasoning"):
+                                st.write(reasoning)
+                    else:
+                        st.warning("No parsed GPT-5 JSON. See raw output below.")
+
+                    # OCR text
+                    ocr = rec.get("ocr_text")
+                    if ocr:
+                        with st.expander("OCR Text"):
+                            st.write(ocr)
+
+                    # Raw output
+                    if show_raw:
+                        raw = rec.get("gpt5_raw")
+                        if raw:
+                            with st.expander("Raw Model Output"):
+                                st.code(raw)
+                    if rec.get("error"):
+                        st.error(rec["error"])
+            st.divider()
+            shown += 1
     
     def render_models_tab(self):
         """Render model status and performance tab."""

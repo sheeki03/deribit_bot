@@ -2,6 +2,32 @@ import argparse
 import asyncio
 import csv
 from datetime import datetime, timezone, date, timedelta
+from typing import Optional, Any
+
+try:
+    from dateutil import parser as dateutil_parser
+except ImportError:  # pragma: no cover - optional dependency
+    dateutil_parser = None
+def parse_iso_datetime(pub: Any) -> Optional[datetime]:
+    """Parse various datetime representations robustly.
+
+    - Accepts datetime objects and returns them as-is
+    - Accepts strings, tries python-dateutil if available, else replaces trailing 'Z' with '+00:00' and uses fromisoformat
+    - Returns None on failure
+    """
+    if not pub:
+        return None
+    if isinstance(pub, datetime):
+        return pub
+    if isinstance(pub, str):
+        try:
+            if dateutil_parser is not None:
+                return dateutil_parser.isoparse(pub)
+            # Fallback for environments without python-dateutil
+            return datetime.fromisoformat(pub.replace('Z', '+00:00'))
+        except Exception:
+            return None
+    return None
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -9,8 +35,8 @@ from app.market_data.coingecko_client import coingecko_client
 
 # Asset inception dates
 ASSET_START = {
-    'BTC': date(2012, 1, 1),
-    'ETH': date(2015, 8, 7),
+    'BTC': date(2022, 1, 1),
+    'ETH': date(2022, 1, 1),
 }
 
 
@@ -29,10 +55,9 @@ async def compute_for_article(article: Dict[str, Any], forward_hours: List[int])
     pub = article.get("published_at_utc") or article.get("published_at")
     if not pub:
         return {"url": url, "title": title, "published_at_utc": None}
-    if isinstance(pub, str):
-        pub_dt = datetime.fromisoformat(pub.replace('Z', '+00:00'))
-    else:
-        pub_dt = pub
+    pub_dt = parse_iso_datetime(pub)
+    if pub_dt is None:
+        return {"url": url, "title": title, "published_at_utc": None}
 
     result = {"url": url, "title": title, "published_at_utc": pub_dt.isoformat()}
     for asset in ["BTC", "ETH"]:
@@ -64,14 +89,15 @@ async def main_async(args: argparse.Namespace):
         pub = a.get('published_at_utc') or a.get('published_at')
         if not pub:
             continue
-        if isinstance(pub, str):
-            try:
-                dt = datetime.fromisoformat(pub.replace('Z', '+00:00'))
-            except Exception:
-                continue
+        dt = parse_iso_datetime(pub)
+        if dt is None:
+            continue
+        # Filter to 2022+ only
+        if dt.date() >= ASSET_START['BTC']:
+            pub_days.append(clamp_day(dt))
         else:
-            dt = pub
-        pub_days.append(clamp_day(dt))
+            # mark invalid so we can skip compute later
+            a['skip_due_to_date'] = True
 
     if pub_days:
         min_day = min(pub_days)
@@ -82,7 +108,7 @@ async def main_async(args: argparse.Namespace):
         await coingecko_client.ensure_daily_cache_for_range('BTC', prefetch_start_btc, max_day + timedelta(days=7))
         await coingecko_client.ensure_daily_cache_for_range('ETH', prefetch_start_eth, max_day + timedelta(days=7))
 
-    tasks = [compute_for_article(a, forward_hours) for a in subset]
+    tasks = [compute_for_article(a, forward_hours) for a in subset if not a.get('skip_due_to_date')]
     rows = await asyncio.gather(*tasks)
 
     # Write CSV

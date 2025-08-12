@@ -35,11 +35,7 @@ class BulletproofScraper:
     """
     
     def __init__(self):
-        self.session = httpx.AsyncClient(
-            timeout=30.0,
-            headers={'User-Agent': settings.user_agent},
-            follow_redirects=True
-        )
+        self.session: Optional[httpx.AsyncClient] = None
         self.firecrawl_client = FirecrawlClient()
         self.processed_urls: Set[str] = set()
         self.content_hashes: Set[str] = set()
@@ -62,7 +58,17 @@ class BulletproofScraper:
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self.session.aclose()
+        if self.session and not getattr(self.session, "is_closed", False):
+            await self.session.aclose()
+
+    def _ensure_session(self) -> None:
+        """Ensure an httpx.AsyncClient session is available."""
+        if self.session is None or getattr(self.session, "is_closed", False):
+            self.session = httpx.AsyncClient(
+                timeout=30.0,
+                headers={'User-Agent': settings.user_agent},
+                follow_redirects=True
+            )
     
     def compute_content_hash(self, content: str) -> str:
         """Compute hash for content deduplication."""
@@ -86,6 +92,7 @@ class BulletproofScraper:
             "https://insights.deribit.com/option-flows/feed/"
         ]
         
+        self._ensure_session()
         for rss_url in rss_urls:
             try:
                 logger.info(f"Fetching RSS feed: {rss_url}")
@@ -132,6 +139,7 @@ class BulletproofScraper:
         article_links = set()
         
         try:
+            self._ensure_session()
             logger.info("Discovering ALL articles via HTML scraping with pagination")
             
             # Start with page 1 and continue until no more pages
@@ -400,12 +408,7 @@ class BulletproofScraper:
     async def _scrape_html_content(self, url: str) -> Optional[Dict]:
         """Scrape article content using direct HTML parsing."""
         # Ensure session is available
-        if self.session is None or self.session.is_closed:
-            self.session = httpx.AsyncClient(
-                timeout=30.0,
-                headers={'User-Agent': settings.user_agent},
-                follow_redirects=True
-            )
+        self._ensure_session()
         
         response = await self.session.get(url)
         response.raise_for_status()

@@ -29,6 +29,49 @@ class OptionsFeatureExtractor:
     - Multimodal features (from images and charts)
     """
     
+    # Enhanced options-specific terminology dictionary
+    OPTIONS_TERMINOLOGY = {
+        'bullish_indicators': [
+            'call buying', 'put selling', 'gamma squeeze', 'skew firming',
+            'upside flow', 'bullish flow', 'call dominance', 'positive gamma',
+            'long gamma', 'call spread buying', 'protective put selling',
+            'vol selling in puts', 'skew compression'
+        ],
+        'bearish_indicators': [
+            'put buying', 'call selling', 'negative gamma', 'skew steepening',
+            'downside protection', 'bearish flow', 'put dominance', 'short gamma',
+            'call spread selling', 'protective call buying', 'put spread buying',
+            'vol buying in puts', 'skew expansion'
+        ],
+        'flow_concentration': [
+            'whale activity', 'large block', 'unusual activity', 'concentrated flow',
+            'outsized position', 'institutional flow', 'smart money', 'flow concentration',
+            'block trade', 'large notional', 'significant flow'
+        ],
+        'volatility_terms': [
+            'implied vol', 'realized vol', 'vol premium', 'vol discount',
+            'vega positive', 'vega negative', 'vol smile', 'term structure',
+            'vol surface', 'vol skew', 'volatility regime'
+        ],
+        'greeks': [
+            'delta', 'gamma', 'theta', 'vega', 'rho', 'charm', 'vanna',
+            'volga', 'speed', 'zomma', 'color'
+        ],
+        'expiry_terms': [
+            'front month', 'back month', 'weekly', 'monthly', 'quarterly',
+            'LEAPS', 'near term', 'far dated', 'short dated', 'long dated'
+        ]
+    }
+    
+    # Quantitative extraction patterns
+    QUANTITATIVE_PATTERNS = {
+        'strikes': re.compile(r'\$?([0-9,]+(?:\.[0-9]+)?)\s*(?:strike|K|k)', re.IGNORECASE),
+        'notionals': re.compile(r'\$([0-9,]+(?:\.[0-9]+)?)\s*([KkMmBb]|thousand|million|billion)\b', re.IGNORECASE),
+        'percentages': re.compile(r'([0-9]+(?:\.[0-9]+)?)\s*%', re.IGNORECASE),
+        'greek_values': re.compile(r'(?:delta|gamma|theta|vega)\s*(?:of|:)?\s*([0-9]+(?:\.[0-9]+)?)', re.IGNORECASE),
+        'expiry_dates': re.compile(r'(?:exp|expir|expires?)\s*(?:on|in)?\s*([A-Za-z]{3,9}\s*[0-9]{1,2}(?:st|nd|rd|th)?)', re.IGNORECASE)
+    }
+    
     def __init__(self):
         self.tfidf_vectorizer = None
         self.scaler = StandardScaler()
@@ -302,56 +345,151 @@ class OptionsFeatureExtractor:
         return sum(len(re.findall(r'\b' + term + r'\b', text)) for term in size_terms)
     
     def _extract_numerical_features(self, text: str) -> Dict[str, Union[float, List]]:
-        """Extract numerical data from text."""
+        """Enhanced extraction of numerical data from options flow text."""
         if not text:
             return {
                 'strike_count': 0, 'notional_count': 0, 'contract_count': 0,
-                'avg_strike': 0, 'total_notional': 0, 'max_multiplier': 0
+                'avg_strike': 0, 'total_notional': 0, 'max_multiplier': 0,
+                'greek_values_count': 0, 'expiry_count': 0
             }
         
         features = {}
         
-        # Extract strikes
-        strikes = self.patterns['strikes'].findall(text)
-        strike_values = [self._parse_k_notation(s) for s in strikes]
-        strike_values = [v for v in strike_values if v > 0]
+        # Enhanced strike extraction using new patterns
+        strikes = self.QUANTITATIVE_PATTERNS['strikes'].findall(text)
+        strike_values = []
+        for strike in strikes:
+            try:
+                # Remove commas and convert to float
+                value = float(strike.replace(',', ''))
+                if 10 < value < 1000000:  # Reasonable strike range
+                    strike_values.append(value)
+            except ValueError:
+                continue
         
         features['strike_count'] = len(strike_values)
         features['avg_strike'] = np.mean(strike_values) if strike_values else 0
         features['strike_std'] = np.std(strike_values) if len(strike_values) > 1 else 0
+        features['min_strike'] = min(strike_values) if strike_values else 0
+        features['max_strike'] = max(strike_values) if strike_values else 0
         
-        # Extract notionals
-        notionals = self.patterns['notionals'].findall(text)
+        # Enhanced notional extraction using explicit unit capture
         notional_values = []
-        for amount, unit in notionals:
-            multiplier = {'m': 1e6, 'million': 1e6, 'b': 1e9, 'billion': 1e9}
-            value = float(amount) * multiplier.get(unit.lower(), 1)
-            notional_values.append(value)
+        for amt_str, unit_str in self.QUANTITATIVE_PATTERNS['notionals'].findall(text):
+            try:
+                amount = float(amt_str.replace(',', ''))
+                unit_lower = unit_str.lower()
+                if unit_lower in ('b', 'billion'):
+                    amount *= 1e9
+                elif unit_lower in ('m', 'million'):
+                    amount *= 1e6
+                elif unit_lower in ('k', 'thousand'):
+                    amount *= 1e3
+                notional_values.append(amount)
+            except ValueError:
+                continue
         
         features['notional_count'] = len(notional_values)
         features['total_notional'] = sum(notional_values)
         features['avg_notional'] = np.mean(notional_values) if notional_values else 0
+        features['max_notional'] = max(notional_values) if notional_values else 0
         
-        # Extract contracts
-        contracts = self.patterns['contracts'].findall(text)
-        contract_values = [self._parse_k_notation(c) for c in contracts]
-        contract_values = [v for v in contract_values if v > 0]
+        # Greek values extraction (NEW)
+        greek_matches = self.QUANTITATIVE_PATTERNS['greek_values'].findall(text)
+        greek_values = []
+        for match in greek_matches:
+            try:
+                value = float(match)
+                if 0 <= value <= 1:  # Greek values are typically 0-1
+                    greek_values.append(value)
+            except ValueError:
+                continue
         
-        features['contract_count'] = len(contract_values)
-        features['total_contracts'] = sum(contract_values)
+        features['greek_values_count'] = len(greek_values)
+        features['avg_greek_value'] = np.mean(greek_values) if greek_values else 0
         
-        # Extract multipliers (e.g., "10x", "50x")
-        multipliers = self.patterns['multipliers'].findall(text)
-        multiplier_values = [int(m) for m in multipliers]
-        features['max_multiplier'] = max(multiplier_values) if multiplier_values else 0
+        # Expiry dates extraction (NEW)
+        expiry_matches = self.QUANTITATIVE_PATTERNS['expiry_dates'].findall(text)
+        features['expiry_count'] = len(expiry_matches)
+        features['has_near_expiry'] = any('week' in exp.lower() for exp in expiry_matches)
+        features['has_far_expiry'] = any(month in exp.lower() for exp in expiry_matches 
+                                       for month in ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                                                    'jul', 'aug', 'sep', 'oct', 'nov', 'dec'])
         
-        # Extract percentages
-        percentages = self.patterns['percentages'].findall(text)
-        pct_values = [float(p) for p in percentages]
+        # Enhanced percentage extraction
+        percentages = self.QUANTITATIVE_PATTERNS['percentages'].findall(text)
+        pct_values = []
+        for pct in percentages:
+            try:
+                value = float(pct)
+                if 0 <= value <= 1000:  # Reasonable percentage range
+                    pct_values.append(value)
+            except ValueError:
+                continue
+        
         features['percentage_count'] = len(pct_values)
         features['max_percentage'] = max(pct_values) if pct_values else 0
+        features['avg_percentage'] = np.mean(pct_values) if pct_values else 0
         
         return features
+
+    def _determine_unit_multiplier(self, context: str) -> Tuple[str, float]:
+        """Determine unit and multiplier from right-side context slice.
+
+        Returns (unit, multiplier) among ('billion', 1e9), ('million', 1e6),
+        ('thousand', 1e3), or ('dollars', 1).
+        """
+        ctx = context.lower()
+        if re.search(r'\b(b|billion)\b', ctx):
+            return ('billion', 1e9)
+        if re.search(r'\b(m|million)\b', ctx):
+            return ('million', 1e6)
+        if re.search(r'\b(k|thousand)\b', ctx):
+            return ('thousand', 1e3)
+        return ('dollars', 1.0)
+
+    def _extract_notionals_with_units(self, text: str) -> List[Dict[str, Union[str, float]]]:
+        """Extract notionals using regex finditer and robust unit parsing.
+
+        Iterates over pattern.finditer(text), uses group(1) as numeric amount, builds
+        right-side context from match.end(), determines unit via helper, and returns
+        structured dicts with amount, unit, value_usd, confidence.
+        """
+        results: List[Dict[str, Union[str, float]]] = []
+        pattern = self.QUANTITATIVE_PATTERNS['notionals']
+        for mo in pattern.finditer(text):
+            amt_str = mo.group(1)
+            try:
+                amount = float(amt_str.replace(',', ''))
+            except ValueError:
+                continue
+            # Prefer explicit captured unit if available (group 2); otherwise use context
+            unit = 'dollars'
+            multiplier = 1.0
+            if mo.lastindex and mo.lastindex >= 2:
+                unit_str = mo.group(2) or ''
+                unit_lower = unit_str.lower()
+                if unit_lower in ('b', 'billion'):
+                    unit, multiplier = 'billion', 1e9
+                elif unit_lower in ('m', 'million'):
+                    unit, multiplier = 'million', 1e6
+                elif unit_lower in ('k', 'thousand'):
+                    unit, multiplier = 'thousand', 1e3
+                else:
+                    # Fallback to context-based detection
+                    context = text[mo.end(): mo.end() + 50]
+                    unit, multiplier = self._determine_unit_multiplier(context)
+            else:
+                context = text[mo.end(): mo.end() + 50]
+                unit, multiplier = self._determine_unit_multiplier(context)
+
+            results.append({
+                'amount': amount,
+                'unit': unit,
+                'value_usd': amount * multiplier,
+                'confidence': 0.8
+            })
+        return results
     
     def _parse_k_notation(self, value_str: str) -> float:
         """Parse values with K notation (e.g., '50k' -> 50000)."""
@@ -573,6 +711,162 @@ class OptionsFeatureExtractor:
             logger.error("Failed to extract TF-IDF features", error=str(e))
             return np.zeros(len(self.tfidf_vectorizer.vocabulary_))
     
+    def extract_structured_options_data(self, text: str, title: str = "") -> Dict[str, any]:
+        """
+        Extract structured options data for database storage in extractions table.
+        
+        This is the main method for extracting actionable intelligence from option flows articles.
+        Designed to populate the 'extractions' table with structured data.
+        
+        Returns:
+            Dictionary with structured extraction data including:
+            - strikes: List of strike prices mentioned
+            - notionals: List of notional amounts 
+            - expiries: List of expiration dates
+            - option_types: Detected options strategies
+            - flow_direction: Bullish/bearish/neutral
+            - key_terms: Important options terminology found
+            - confidence: Extraction confidence score
+        """
+        if not text:
+            return self._empty_structured_data()
+        
+        combined_text = f"{title} {text}".lower()
+        
+        # Initialize structured data
+        structured_data = {
+            'strikes': [],
+            'notionals': [],
+            'expiries': [],
+            'greeks': {},
+            'option_types': [],
+            'flow_direction': 'neutral',
+            'key_terms': [],
+            'sentiment_indicators': [],
+            'flow_concentration': [],
+            'confidence': 0.0,
+            'extracted_at': datetime.utcnow().isoformat()
+        }
+        
+        # Extract strikes with context
+        strike_matches = self.QUANTITATIVE_PATTERNS['strikes'].findall(combined_text)
+        for match in strike_matches:
+            try:
+                value = float(match.replace(',', ''))
+                if 10 < value < 1000000:  # Reasonable strike range
+                    structured_data['strikes'].append({
+                        'value': value,
+                        'currency': 'USD',
+                        'confidence': 0.9
+                    })
+            except ValueError:
+                continue
+        
+        # Extract notionals with robust unit handling (avoid fragile text.find)
+        structured_data['notionals'].extend(self._extract_notionals_with_units(combined_text))
+        
+        # Extract expiry information
+        expiry_matches = self.QUANTITATIVE_PATTERNS['expiry_dates'].findall(combined_text)
+        for match in expiry_matches:
+            structured_data['expiries'].append({
+                'text': match,
+                'type': 'near_term' if any(word in match.lower() for word in ['week', 'day']) else 'standard',
+                'confidence': 0.7
+            })
+        
+        # Extract Greek values
+        greek_matches = self.QUANTITATIVE_PATTERNS['greek_values'].findall(combined_text)
+        if greek_matches:
+            # Find which Greek it refers to
+            for i, match in enumerate(greek_matches):
+                try:
+                    value = float(match)
+                    # Look for the Greek name before this value
+                    pos = combined_text.find(match)
+                    if pos > 10:
+                        context = combined_text[pos-20:pos]
+                        for greek in ['delta', 'gamma', 'theta', 'vega', 'rho']:
+                            if greek in context:
+                                structured_data['greeks'][greek] = {
+                                    'value': value,
+                                    'confidence': 0.8
+                                }
+                                break
+                except ValueError:
+                    continue
+        
+        # Detect option strategies and types
+        strategies_found = []
+        for strategy in ['straddle', 'strangle', 'butterfly', 'condor', 'collar', 'spread']:
+            if strategy in combined_text:
+                strategies_found.append(strategy)
+        
+        for opt_type in ['call', 'put', 'option']:
+            if opt_type in combined_text:
+                strategies_found.append(opt_type)
+        
+        structured_data['option_types'] = list(set(strategies_found))
+        
+        # Determine flow direction using Enhanced PRD terminology
+        bullish_score = 0
+        bearish_score = 0
+        
+        for term in self.OPTIONS_TERMINOLOGY['bullish_indicators']:
+            if term in combined_text:
+                bullish_score += 1
+                structured_data['sentiment_indicators'].append({
+                    'term': term,
+                    'sentiment': 'bullish',
+                    'confidence': 0.8
+                })
+        
+        for term in self.OPTIONS_TERMINOLOGY['bearish_indicators']:
+            if term in combined_text:
+                bearish_score += 1
+                structured_data['sentiment_indicators'].append({
+                    'term': term,
+                    'sentiment': 'bearish',
+                    'confidence': 0.8
+                })
+        
+        # Detect flow concentration indicators
+        for term in self.OPTIONS_TERMINOLOGY['flow_concentration']:
+            if term in combined_text:
+                structured_data['flow_concentration'].append({
+                    'term': term,
+                    'confidence': 0.9
+                })
+        
+        # Determine overall flow direction
+        if bullish_score > bearish_score * 1.2:
+            structured_data['flow_direction'] = 'bullish'
+        elif bearish_score > bullish_score * 1.2:
+            structured_data['flow_direction'] = 'bearish'
+        else:
+            structured_data['flow_direction'] = 'neutral'
+        
+        # Calculate confidence score
+        confidence_factors = [
+            len(structured_data['strikes']) > 0,           # Has strikes
+            len(structured_data['notionals']) > 0,        # Has notionals  
+            len(structured_data['option_types']) > 0,     # Has option types
+            len(structured_data['sentiment_indicators']) > 0,  # Has sentiment
+            len(structured_data['greeks']) > 0            # Has Greeks
+        ]
+        
+        structured_data['confidence'] = sum(confidence_factors) / len(confidence_factors)
+        
+        return structured_data
+    
+    def _empty_structured_data(self) -> Dict[str, any]:
+        """Return empty structured data for failed extractions."""
+        return {
+            'strikes': [], 'notionals': [], 'expiries': [], 'greeks': {},
+            'option_types': [], 'flow_direction': 'neutral', 'key_terms': [],
+            'sentiment_indicators': [], 'flow_concentration': [],
+            'confidence': 0.0, 'extracted_at': datetime.utcnow().isoformat()
+        }
+
     def _empty_text_features(self) -> Dict[str, Union[float, int, List]]:
         """Return empty feature dictionary for missing text."""
         return {

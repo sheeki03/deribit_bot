@@ -20,16 +20,17 @@ from app.validation.data_validator import data_validator
 from app.market_data.price_correlator import price_correlator
 
 
+"""Set environment variables once at startup to configure GPU acceleration."""
+os.environ.setdefault('EASYOCR_GPU', '1')
+os.environ.setdefault('PYTORCH_MPS_HIGH_WATERMARK_RATIO', '0.0')
+
+
 class SmartResumeScraper:
     """Resume scraping from the last processed article."""
     
     def __init__(self):
         self.data_dir = Path("./scraped_data")
         self.data_dir.mkdir(exist_ok=True)
-        
-        # Enable GPU acceleration
-        os.environ['EASYOCR_GPU'] = '1'
-        os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
         
     def load_discovered_articles(self) -> List[Dict]:
         """Load all discovered articles."""
@@ -83,7 +84,7 @@ class SmartResumeScraper:
                 continue
                 
             # Only include actual option-flow articles
-            if '/option-flow' in article_url and article_url not in processed_urls:
+            if '/option-flow' in article_url:
                 remaining_articles.append(article)
         
         print(f"🎯 Found {len(remaining_articles)} articles remaining to process")
@@ -113,7 +114,7 @@ class SmartResumeScraper:
         
         for i, article in enumerate(remaining_articles, 1):
             current_total = successful_scrapes + i
-            print(f"\\n📄 [{current_total}/{len(remaining_articles) + len(already_processed)}] {article['title'][:60]}...")
+            print(f"\n📄 [{current_total}/{len(remaining_articles) + len(already_processed)}] {article['title'][:60]}...")
             print(f"   🔗 {article['url']}")
             
             try:
@@ -196,7 +197,7 @@ class SmartResumeScraper:
             json.dump(articles_processed, f, indent=2, default=str)
         
         # Generate comprehensive statistics
-        print(f"\\n📊 FINAL COMPREHENSIVE SCRAPING RESULTS")
+        print(f"\n📊 FINAL COMPREHENSIVE SCRAPING RESULTS")
         print("=" * 80)
         print(f"✅ Successfully scraped: {successful} articles")
         print(f"❌ Failed scrapes: {failed} articles")
@@ -215,7 +216,7 @@ class SmartResumeScraper:
             print(f"✅ Valid articles: {valid_articles}/{len(articles_processed)}")
             print(f"📊 Average quality: {avg_quality:.1f}/100")
         
-        print(f"\\n💾 Complete dataset saved to: {final_file}")
+        print(f"\n💾 Complete dataset saved to: {final_file}")
         print(f"🎉 MISSION ACCOMPLISHED: {successful} articles with {total_images} images!")
 
 
@@ -239,14 +240,14 @@ async def main():
         # Process remaining articles
         results = await scraper.process_remaining_articles(remaining_articles, processed_articles)
         
-        print(f"\\n{'🎉 SUCCESS' if results['successful_scrapes'] > 0 else '⚠️ COMPLETE'}: {results['successful_scrapes']} total articles processed")
+        print(f"\n{'🎉 SUCCESS' if results['successful_scrapes'] > 0 else '⚠️ COMPLETE'}: {results['successful_scrapes']} total articles processed")
         return True
         
     except KeyboardInterrupt:
-        print("\\n⚠️ Scraping interrupted by user")
+        print("\n⚠️ Scraping interrupted by user")
         return False
     except Exception as e:
-        print(f"\\n💥 Scraper crashed: {e}")
+        print(f"\n💥 Scraper crashed: {e}")
         return False
 
 

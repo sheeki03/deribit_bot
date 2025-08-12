@@ -324,27 +324,7 @@ class PriceCorrelator:
         """Calculate comprehensive price metrics for the week following the article."""
         
         if not daily_prices:
-            # Return empty analysis if no data
-            return WeeklyPriceAnalysis(
-                article_url=article_data.get('url', ''),
-                article_date=article_date,
-                article_title=article_data.get('title', ''),
-                asset=asset_symbol,
-                daily_prices=[],
-                week_start_price=0,
-                week_end_price=0,
-                week_high=0,
-                week_low=0,
-                weekly_return=0,
-                weekly_volatility=0,
-                max_drawdown=0,
-                article_sentiment=article_sentiment.get('sentiment', 'neutral'),
-                article_confidence=article_sentiment.get('confidence', 0),
-                prediction_accuracy=0,
-                major_moves=[],
-                trend_direction='sideways',
-                volatility_level='low'
-            )
+            return self._create_empty_analysis(article_data, article_date, asset_symbol, article_sentiment)
         
         # Basic price metrics with safety guards
         prices = [p.price_close for p in daily_prices]
@@ -352,27 +332,7 @@ class PriceCorrelator:
         # Safety guard: ensure prices list is not empty
         if not prices:
             logger.warning("Prices list is empty, cannot compute price metrics")
-            # Return empty analysis if no prices
-            return WeeklyPriceAnalysis(
-                article_url=article_data.get('url', ''),
-                article_date=article_date,
-                article_title=article_data.get('title', ''),
-                asset=asset_symbol,
-                daily_prices=[],
-                week_start_price=0,
-                week_end_price=0,
-                week_high=0,
-                week_low=0,
-                weekly_return=0,
-                weekly_volatility=0,
-                max_drawdown=0,
-                article_sentiment=article_sentiment.get('sentiment', 'neutral'),
-                article_confidence=article_sentiment.get('confidence', 0),
-                prediction_accuracy=0,
-                major_moves=[],
-                trend_direction='sideways',
-                volatility_level='low'
-            )
+            return self._create_empty_analysis(article_data, article_date, asset_symbol, article_sentiment)
         
         week_start_price = prices[0]
         week_end_price = prices[-1]
@@ -450,6 +410,29 @@ class PriceCorrelator:
             major_moves=major_moves,
             trend_direction=trend_direction,
             volatility_level=volatility_level
+        )
+
+    def _create_empty_analysis(self, article_data: Dict, article_date: datetime, asset_symbol: str, article_sentiment: Dict) -> WeeklyPriceAnalysis:
+        """Create a default empty WeeklyPriceAnalysis object when price data is unavailable."""
+        return WeeklyPriceAnalysis(
+            article_url=article_data.get('url', ''),
+            article_date=article_date,
+            article_title=article_data.get('title', ''),
+            asset=asset_symbol,
+            daily_prices=[],
+            week_start_price=0,
+            week_end_price=0,
+            week_high=0,
+            week_low=0,
+            weekly_return=0,
+            weekly_volatility=0,
+            max_drawdown=0,
+            article_sentiment=article_sentiment.get('sentiment', 'neutral'),
+            article_confidence=article_sentiment.get('confidence', 0),
+            prediction_accuracy=0,
+            major_moves=[],
+            trend_direction='sideways',
+            volatility_level='low'
         )
     
     def _calculate_prediction_accuracy(self, article_sentiment: Dict, 

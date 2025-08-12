@@ -88,19 +88,20 @@ def normalize_article(article: Dict[str, Any]) -> Dict[str, Any]:
     published_at_utc: Optional[str] = None
     if isinstance(published_raw, str) and published_raw.strip():
         s = published_raw.strip().replace("Z", "+00:00")
-        # Accept both "YYYY-mm-dd HH:MM:SS" and ISO forms
-        for fmt in ("%Y-%m-%d %H:%M:%S", None):
+        dt: Optional[datetime] = None
+        try:
+            # First try exact "YYYY-mm-dd HH:MM:SS"
+            dt = datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
+        except ValueError:
             try:
-                if fmt:
-                    dt = datetime.strptime(s, fmt).replace(tzinfo=timezone.utc)
-                else:
-                    dt = datetime.fromisoformat(s)
-                    if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
-                published_at_utc = dt.astimezone(timezone.utc).isoformat()
-                break
-            except Exception:
-                continue
+                # Fallback to fromisoformat
+                dt = datetime.fromisoformat(s)
+            except ValueError:
+                dt = None
+        if dt is not None:
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            published_at_utc = dt.astimezone(timezone.utc).isoformat()
 
     # Clean bodies
     body_html = article.get("body_html") or ""

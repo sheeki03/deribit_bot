@@ -1,0 +1,624 @@
+{
+  "session_id": "scan_1754983160",
+  "start_time": "2025-08-12T12:49:20.014478",
+  "end_time": "2025-08-12T13:16:01.926528",
+  "total_operations": 51,
+  "successful_operations": 50,
+  "failed_operations": 1,
+  "total_duration": 1601.91205,
+  "avg_duration": 31.40429744533464,
+  "operations_per_second": 0.03183695384525012,
+  "peak_memory_mb": 0.0,
+  "error_rate": 0.0196078431372549,
+  "operations": [
+    {
+      "operation": "load_existing_results",
+      "start_time": 1754983160.0144901,
+      "end_time": 1754983160.016654,
+      "duration": 0.0021638870239257812,
+      "success": true,
+      "error": null,
+      "metadata": null
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983160.0182452,
+      "end_time": 1754983201.706114,
+      "duration": 41.68786883354187,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/bd/bd576f12028b8236dafb4cb241e106fd06c734a2478bf2d96d7e2e77cb48ec6d.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/5df1c924-ced2-4fda-a8de-91ba75caf675.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983201.707606,
+      "end_time": 1754983258.884021,
+      "duration": 57.17641496658325,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/a4/a40b9485bc3acd3a286b74f700f9839e117cbd5eb9d21864a5882770b056c7ca.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/f2d9aec6-f3a8-41eb-b166-7164c47e3d63.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983258.884438,
+      "end_time": 1754983292.1954932,
+      "duration": 33.311055183410645,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/55/5509b9bc59238d55da9ee4c3bdb539526af2fd52986f78698c1e810650bb96b5.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/335a21d9-a508-4ada-ad78-1fcb61b75e40.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983292.198747,
+      "end_time": 1754983333.102837,
+      "duration": 40.90409016609192,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/0e/0e0b4b35de9a44fa3edc7db78e958d65fd47dc9a1ad8f537d581c04500a95dbf.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/6817110a-9ff5-47a7-b77a-930d8a89b043.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983333.105536,
+      "end_time": 1754983364.167201,
+      "duration": 31.061665058135986,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/27/27398352411f8e32c7c10cbb09f7009cbf0e10bc1e6bf853a838f8436866edb1.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/bdf41817-0de6-4919-8649-a67986d402ea.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983364.167489,
+      "end_time": 1754983405.9472919,
+      "duration": 41.77980279922485,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/e5/e57f98b51b014956adf52b45c7e8a52e78e8d2e34f32c050847b8c637cc77471.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/df75724f-79ce-4924-839d-e3514a70d680.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983405.949375,
+      "end_time": 1754983463.386683,
+      "duration": 57.43730807304382,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/23/23777221eaa80a4c7f578056a43689471e014492bf2c84712be469606ecdbeec.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/790cc609-b5f0-433a-a96b-1367d030e1f9.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983463.388444,
+      "end_time": 1754983489.381423,
+      "duration": 25.992979049682617,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/bd/bd32acf1fdcc269c83f4d8f68c91e67c91f61b90b1dcbd47b425081346a2f418.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/91ef0244-c64a-43f9-be54-a08b947d83a4.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983489.3817549,
+      "end_time": 1754983519.7819479,
+      "duration": 30.400192975997925,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/bc/bc99190382868ebfbb75da43e53a617e6f5931756b9b2aae500b67874241aa56.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/4c34c017-dd35-43bd-be3e-3f8c155136c6.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983519.785572,
+      "end_time": 1754983548.1462982,
+      "duration": 28.36072611808777,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/1f/1f26c8b8c95aa1a713f11c6a5bc5f5fad3530fc7376fdd010622e764f1950fb3.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/2c42e23f-29bb-4645-8bac-228156e79efb.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983548.171108,
+      "end_time": 1754983576.011364,
+      "duration": 27.840255975723267,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/ce/ce616287dd2c8e52145bc6f7ee543f2f0af8a247938cf41cd439b1698d7564ad.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/034f8136-f1a5-42b6-bc39-7f1a1fb42d7a.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983576.0121331,
+      "end_time": 1754983609.581975,
+      "duration": 33.56984186172485,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/e7/e77d53127abd5897ba25e8c5842f3de9a6532a6c675e2bdb4dc5e420e74f3f06.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/6c630cad-c527-46c1-bd73-194ce5fc9aa9.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983609.584793,
+      "end_time": 1754983638.650545,
+      "duration": 29.065751791000366,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/6e/6e13a85be560c0619aed97ceb3c8ceed368e6d3109dc24f2c06fa5da44cfa191.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/7a1ce249-fcd9-4fb7-a17a-eb2520b656e7.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983638.652122,
+      "end_time": 1754983663.227423,
+      "duration": 24.575300931930542,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/6e/6e13a85be560c0619aed97ceb3c8ceed368e6d3109dc24f2c06fa5da44cfa191.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/39c801e2-3c99-4238-a999-cd35d72761d8.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983663.227983,
+      "end_time": 1754983691.9386072,
+      "duration": 28.71062421798706,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/ac/acd46745822fad8ee9c9f357f1dbd046ab6ca98201a0e826936c818f67d6690d.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/b33470e9-4e94-487b-8b19-d783d510a1c9.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983691.942521,
+      "end_time": 1754983728.509258,
+      "duration": 36.566736936569214,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/5a/5ac82e3998e1315f4b1df9d90e3e5acab48d9645e7a2f60a77a53e168b419201.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/aed0eccb-bd6c-435c-a180-27c19d6e978e.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983728.5107892,
+      "end_time": 1754983750.435791,
+      "duration": 21.925001859664917,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/7e/7e681367518ffc30d407f549e2a4d8278104307e15aedb8731956ffd11996a7e.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/28a0fb5f-5476-4389-bc86-04b14d3f6a23.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983750.436329,
+      "end_time": 1754983772.736504,
+      "duration": 22.300175189971924,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/0e/0e24add56683c76b414d4ba27d852884b7d6afff531774633c133c219e414998.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/5be3614a-68b9-40d6-bdf0-c5cb9db2208d.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983772.7394629,
+      "end_time": 1754983800.0334668,
+      "duration": 27.29400396347046,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/ee/ee1d6400028b65bec8796ae23fec84a32c5f5b8d2fabbfcfe34c54a4fc33850e.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/412be232-a82b-4c3d-b037-b0af3a37db25.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983800.034374,
+      "end_time": 1754983840.858103,
+      "duration": 40.823729038238525,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/93/93878dd29c49efcfe4ca454d0d6a06360fdbc129f1b06fe93cbc34709a0be0ef.png",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/987a089f-63b5-41b8-937b-ab037367bf61.png"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983840.9027789,
+      "end_time": 1754983874.392014,
+      "duration": 33.489235162734985,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/68/685738a8bb81d960c0608bac1b499ae53f1f20a5e3b0a742c8c4f9eaa40cdcd7.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/28d93133-9000-4118-8657-3eabc1141ac1.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983874.394138,
+      "end_time": 1754983884.173837,
+      "duration": 9.779698848724365,
+      "success": false,
+      "error": "HTTP 500 error on attempt 1: Server error '500 Internal Server Error' for url 'https://openrouter.ai/api/v1/chat/completions'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500",
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/e6/e69f27248caaf59497a1600b71545ad1abd11d72456fd6c854e37e6ae4259b25.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/9c6263e1-7af4-4c80-8463-cdd3649c526a.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983884.180863,
+      "end_time": 1754983911.269731,
+      "duration": 27.088868141174316,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/f1/f1cd75539120791c55f09cf976f6920226005097ebda9a693ce0d0f96768cab4.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/3a06ca7b-d373-4204-8738-444c509f2637.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983911.270747,
+      "end_time": 1754983945.803046,
+      "duration": 34.53229904174805,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/11/11688b7c41d12ca96fbb376f7937c840ea1f76cc9bffa470a98e3182f337c266.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/c45200d9-9920-42cb-a962-f027440abc75.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983945.808314,
+      "end_time": 1754983971.104905,
+      "duration": 25.29659080505371,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/6c/6cf7a7da7eab710b501d8afae926741f1f6f2fc626b0ae3a511c8f3f5505851c.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/fe4a9625-d879-406c-a3a2-dc2bcbed67b4.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754983971.105545,
+      "end_time": 1754984004.157961,
+      "duration": 33.05241584777832,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/ca/ca4e1d9aa72d0aa147d3a3270b78e3c1fe73fb2f81eefe534a452628e75fbf6f.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/3afdb764-21ed-4f79-a70b-5ce08ba3b315.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984004.1602051,
+      "end_time": 1754984025.966455,
+      "duration": 21.806249856948853,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/b9/b92a4308e05b050047c1ca4c4c6783b9ace05902a96e2201979a55f743218306.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/73c0db49-97e0-4f0f-9845-666dcd34476c.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984025.970127,
+      "end_time": 1754984053.2960699,
+      "duration": 27.325942754745483,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/ad/ad5db7bd1ae0a58f06cb9a5f1fcc89a8d3ff25c94264d866cd70c3c8b8c15d19.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/e748b9ef-1335-487c-9026-728bf434d7ef.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984053.297929,
+      "end_time": 1754984084.3931599,
+      "duration": 31.0952308177948,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/c3/c32f8626829a2fe85ac8e4d46c6871f9d0af93ffa75eaca3165a670d1d075193.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/2659c317-f9be-4edb-80cf-7e510662d5e1.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984084.3937778,
+      "end_time": 1754984109.5981078,
+      "duration": 25.20432996749878,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/2b/2b6201b776106161f755c5b90ae9e1f9409e6695cff2b321f41502354ae5eff9.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/7bd7a73c-a59a-442e-8b9f-e0b238d8b255.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984109.632447,
+      "end_time": 1754984154.997795,
+      "duration": 45.36534810066223,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/42/42b55fbee4419ebe3e81ebb2cd8c410bda82b2c732411371aa41dbc282046e46.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/66a41e30-c84b-4b6e-86df-3c56f02236cd.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984154.998488,
+      "end_time": 1754984203.212524,
+      "duration": 48.214035987854004,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/79/7977d86f71dd19ffad00c4917f0f75b76678b6c19ab1a6aae193b50730f1aa47.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/7ee3b70e-bf50-4692-85d5-1ba08c6de0dd.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984203.2129862,
+      "end_time": 1754984235.142669,
+      "duration": 31.929682731628418,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/7d/7d86a91b5e9de3a23ecf02af49b473c23b015994c9d585f758ba3c0024584733.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/1919a86f-654a-414d-9c3b-c516911e212d.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984235.1467981,
+      "end_time": 1754984272.6574578,
+      "duration": 37.51065969467163,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/95/95f620e6e341d557a20fe6159b541a415f31e00581e14178252c113d3ed61da1.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/d325e819-0bf5-4d2e-8a0e-f0e25773e927.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984272.6578481,
+      "end_time": 1754984305.6976058,
+      "duration": 33.03975772857666,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/24/2497e6e99d8a1f953bed4723013bcca99e990b9d2eebf3f595937c8a1a853ed5.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/ce20b879-9ee6-4f9b-91e1-d1d2da98e0fe.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984305.698893,
+      "end_time": 1754984349.472944,
+      "duration": 43.77405095100403,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/f7/f768c52036972dc8d378e6990c4256300ae911a19bb31e9a0d193375b0978764.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/71a9a332-aa5e-40bc-bc1c-581b85365c2a.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984349.476202,
+      "end_time": 1754984384.444757,
+      "duration": 34.968554973602295,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/cd/cd8bace48abb1050e6f3b138e440eac9b46d500df55eb1a6971b06392c5ba01b.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/09cfbc93-c659-4baf-91f8-1547c1517f7f.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984384.445698,
+      "end_time": 1754984416.440564,
+      "duration": 31.994865894317627,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/70/707e2d71fabcb0dfe4ad47fb92603776a22384ea71553376f1bdf896e4be59d7.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/86f36ac6-8e2c-4874-a85a-425de756c515.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984416.441281,
+      "end_time": 1754984435.958268,
+      "duration": 19.516986846923828,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/f9/f912b07ad63eb87047b7393c2b9aa885fb3e4b9a35a6bbdb82ad1b557da37b1e.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/8b831af0-c636-4bab-adc9-23a0aea6bc0c.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984435.959573,
+      "end_time": 1754984459.791575,
+      "duration": 23.83200192451477,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/13/13c9e818e798928a71069364f6854dcba8a230ec827d3ea068e7b2fc9f17df1c.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/95085fed-5cad-4a7d-a8e4-f4a57b01a793.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984459.84022,
+      "end_time": 1754984521.8400168,
+      "duration": 61.999796867370605,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/21/212100d5fba5f8683ac46ae2976cad405e366e23406a3e4cafadabbbdffa6975.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/a47de60d-cf1c-4687-9f0d-d74c97a1c5db.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984521.841461,
+      "end_time": 1754984551.386206,
+      "duration": 29.544744968414307,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/3a/3a033942d8842d1bd1cb63a582f5e5efc8ae67e6d676e919250e7f7bd980bec9.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/81cc7ff6-eada-4201-a844-94145efd6d33.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984551.391052,
+      "end_time": 1754984571.456924,
+      "duration": 20.065871953964233,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/6a/6ab992e0a39bd1fe92818fdfd61277ac5d22a78401cb204d2cdc56b4a3d39016.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/b6b236dd-2faf-44be-80e6-1297b5ca1c87.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984571.4577532,
+      "end_time": 1754984601.146268,
+      "duration": 29.688514709472656,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/c3/c34f0a9b83d557896252e147d22b8baaf6d356628175ec666219b174dadc4522.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/639d9a9d-a842-43ae-b5a0-b595d2915720.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984601.146705,
+      "end_time": 1754984636.432016,
+      "duration": 35.28531098365784,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/4a/4a02084f1c845a77ddfc625d4c953ffd6f065f77e5a1ced4000d23d93f63cf80.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/75448709-e8b1-4785-806c-f6551f23541a.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984636.4366798,
+      "end_time": 1754984664.48943,
+      "duration": 28.05275011062622,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/7f/7f596e72d09ce95f3381e9785edb9508b6eb204f1fa7a6d7133c3d1280764de8.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/72e1667a-25df-47fa-8fe5-556e8acaa5d4.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984664.489957,
+      "end_time": 1754984688.558368,
+      "duration": 24.068410873413086,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/70/7043d447391d1b63fd7b119f6dc39d0c8b145932be3e51d7ace7aa063dfa60b7.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/8a9f45f2-b831-4086-af9e-7226834adfac.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984688.5590558,
+      "end_time": 1754984711.316514,
+      "duration": 22.757458209991455,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/2b/2bf0bf17f4954e912d5ab53a71413486142f970a147b91bac5afb7cc9239b75c.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/731ae242-baa7-4f72-9f07-01163c4d134a.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984711.32033,
+      "end_time": 1754984742.544519,
+      "duration": 31.224189043045044,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/ae/aea7cd35668bd0a3e468d4cd25203397006b6c810661b108d01adb767b16faed.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/68d9639d-15c3-4bd6-9cd9-fa2c7164e9b6.jpeg"
+      }
+    },
+    {
+      "operation": "vision_analysis",
+      "start_time": 1754984742.545152,
+      "end_time": 1754984761.874779,
+      "duration": 19.32962703704834,
+      "success": true,
+      "error": null,
+      "metadata": {
+        "path": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images_cleaned/8e/8e45eee90588e116516db8cb5904ad980b8ef1cf71a8fb6f12035e43f636e4f0.jpeg",
+        "url": "/Users/home/Downloads/deribit option bot/deribit_bot/data/images/unknown/300d6456-55c3-4462-8f2a-dc0ebd606bad.jpeg"
+      }
+    }
+  ]
+}

@@ -101,13 +101,31 @@ temp/
 *.bak
 *.backup
 
-# API keys and credentials (extra safety)
-*key*
-*secret*
-*token*
-*password*
-credentials.*
+# API keys and credentials (narrow patterns; avoid false positives)
+# Key/cert file formats
+*.key          # Private key files
+*.pem          # PEM-encoded keys/certs
+*.crt          # Certificates
+*.cert         # Certificates
+*.p12          # PKCS#12 bundles
+*.pfx          # PKCS#12 bundles
+id_rsa         # SSH private key
+id_dsa         # SSH private key
+id_ecdsa       # SSH private key
+id_ed25519     # SSH private key
+
+# Explicit credentials/config files commonly used for secrets
+credentials.json
+secrets.json
 config.json
+config.local.json
+
+# Anchored/tokenized secret patterns
+*_secret.*
+*_token.*
+*_password.*
+.token
+.auth_token
 
 # Database files
 *.db
@@ -129,3 +147,4 @@ coverage.xml
 *.coverage
 .cursorrules
 .cursor/scratchpad.md
+.windsurfrules

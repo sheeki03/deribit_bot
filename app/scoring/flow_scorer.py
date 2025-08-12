@@ -191,6 +191,13 @@ class FlowScorer:
             if isinstance(published_at, str):
                 published_at = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
             
+            # Only enrich for dates within 2022-01-01 .. now
+            from datetime import timezone, date
+            lower = date(2022, 1, 1)
+            now = datetime.now(timezone.utc)
+            if published_at.date() < lower or published_at > now:
+                return article_data
+
             # Get current prices for context
             current_prices = await coingecko_client.get_current_prices(['BTC', 'ETH'])
             

@@ -58,9 +58,10 @@ class CoinGeckoClient:
         self._last_request_time: float = 0.0
 
         # Asset inception dates (approx)
+        # We only need data from 2022 onwards per project scope
         self.asset_start_date = {
-            'BTC': date(2012, 1, 1),
-            'ETH': date(2015, 8, 7),
+            'BTC': date(2022, 1, 1),
+            'ETH': date(2022, 1, 1),
         }
     
     async def __aenter__(self):
