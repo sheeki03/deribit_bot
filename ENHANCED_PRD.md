@@ -323,3 +323,195 @@ def create_alert_message(article, scores, images):
 - **Accuracy**: Manual validation shows >90% correct sentiment classification
 
 This enhanced system will be the gold standard for option flows analysis!
+
+ Comprehensive Streamlit Dashboard Plan for Options Analysis                                                        │
+     │                                                                                                                    │
+     │ 🎯 Dashboard Overview                                                                                              │
+     │                                                                                                                    │
+     │ Create an interactive Streamlit dashboard that combines article analysis with price data to provide comprehensive  │
+     │ options analysis across weekly/monthly timeframes, including price movements between article dates.                │
+     │                                                                                                                    │
+     │ 📊 Core Dashboard Structure                                                                                        │
+     │                                                                                                                    │
+     │ 1. Main Dashboard Components                                                                                       │
+     │                                                                                                                    │
+     │ - Sidebar Navigation: Time period selection, asset filtering, analysis type selection                              │
+     │ - Header Metrics: Key performance indicators and summary stats                                                     │
+     │ - Multi-tab Interface: Different analysis views (Weekly, Monthly, Correlation, Backtesting)                        │
+     │ - Interactive Charts: Plotly-based visualizations with zoom/pan capabilities                                       │
+     │ - Data Tables: Sortable/filterable tables with detailed metrics                                                    │
+     │                                                                                                                    │
+     │ 2. Data Integration Layer                                                                                          │
+     │                                                                                                                    │
+     │ - Article Data: 126 classified articles with perfect date accuracy (2022-2025)                                     │
+     │ - Price Data: 3,370 BTC/ETH records with 49 technical indicators each                                              │
+     │ - Image Analysis: 14,674 analyzed images mapped to articles                                                        │
+     │ - Time Interpolation: Price analysis between article dates                                                         │
+     │                                                                                                                    │
+     │ 🔍 Comprehensive Analysis Types                                                                                    │
+     │                                                                                                                    │
+     │ A. Temporal Analysis                                                                                               │
+     │                                                                                                                    │
+     │ 1. Weekly Article vs Price Correlation                                                                             │
+     │   - Article sentiment vs weekly price performance                                                                  │
+     │   - Trading signal accuracy over weekly periods                                                                    │
+     │   - Volatility predictions vs realized volatility                                                                  │
+     │ 2. Monthly Trend Analysis                                                                                          │
+     │   - Monthly article theme distribution                                                                             │
+     │   - Price momentum vs article directional bias                                                                     │
+     │   - Market regime changes and article classification alignment                                                     │
+     │ 3. Inter-Article Period Analysis                                                                                   │
+     │   - Price movements between consecutive articles                                                                   │
+     │   - Momentum persistence after article signals                                                                     │
+     │   - Gap analysis between predicted vs actual moves                                                                 │
+     │                                                                                                                    │
+     │ B. Market Regime Analysis                                                                                          │
+     │                                                                                                                    │
+     │ 1. Bear Market 2022 Analysis                                                                                       │
+     │   - Article themes during market stress                                                                            │
+     │   - Put/call ratio predictions vs actual flows                                                                     │
+     │   - Volatility signal accuracy during downtrends                                                                   │
+     │ 2. Recovery/Bull Periods (2023-2025)                                                                               │
+     │   - Theme evolution across market cycles                                                                           │
+     │   - Signal strength vs market performance                                                                          │
+     │   - Risk appetite changes in article sentiment                                                                     │
+     │ 3. Event-Driven Analysis                                                                                           │
+     │   - ETF approval period impact analysis                                                                            │
+     │   - Halving cycle correlation with articles                                                                        │
+     │   - Macro event timing vs article predictions                                                                      │
+     │                                                                                                                    │
+     │ C. Options Strategy Analysis                                                                                       │
+     │                                                                                                                    │
+     │ 1. Signal Backtesting                                                                                              │
+     │   - Convert article signals into hypothetical trades                                                               │
+     │   - Risk-adjusted returns by signal type                                                                           │
+     │   - Win rate analysis by market condition                                                                          │
+     │ 2. Volatility Prediction Accuracy                                                                                  │
+     │   - Article volatility predictions vs realized vol                                                                 │
+     │   - IV skew predictions from articles                                                                              │
+     │   - Gamma/delta exposure insights from content                                                                     │
+     │ 3. Flow Analysis Correlation                                                                                       │
+     │   - Article flow predictions vs actual price moves                                                                 │
+     │   - Large flow impact assessment                                                                                   │
+     │   - Market maker positioning insights                                                                              │
+     │                                                                                                                    │
+     │ D. Content Intelligence Analysis                                                                                   │
+     │                                                                                                                    │
+     │ 1. Theme Performance Attribution                                                                                   │
+     │   - Which article themes predicted best moves                                                                      │
+     │   - Asset-specific prediction accuracy (BTC vs ETH)                                                                │
+     │   - Author signal strength over time                                                                               │
+     │ 2. Sentiment vs Performance                                                                                        │
+     │   - Bullish/bearish article sentiment vs returns                                                                   │
+     │   - Risk level assessment accuracy                                                                                 │
+     │   - Market timing effectiveness                                                                                    │
+     │ 3. Image-Enhanced Analysis                                                                                         │
+     │   - Chart pattern recognition from article images                                                                  │
+     │   - Technical analysis accuracy from visual data                                                                   │
+     │   - Support/resistance level predictions                                                                           │
+     │                                                                                                                    │
+     │ E. Advanced Statistical Analysis                                                                                   │
+     │                                                                                                                    │
+     │ 1. Correlation Matrices                                                                                            │
+     │   - Article confidence vs prediction accuracy                                                                      │
+     │   - Theme strength vs market impact                                                                                │
+     │   - Time decay of signal effectiveness                                                                             │
+     │ 2. Regression Analysis                                                                                             │
+     │   - Multivariate models predicting price moves                                                                     │
+     │   - Feature importance of different article metrics                                                                │
+     │   - Risk-adjusted alpha generation                                                                                 │
+     │ 3. Machine Learning Insights                                                                                       │
+     │   - Clustering similar market periods                                                                              │
+     │   - Anomaly detection in article-price relationships                                                               │
+     │   - Predictive modeling for future signals                                                                         │
+     │                                                                                                                    │
+     │ 🖥️ Dashboard Features                                                                                             │
+     │                                                                                                                    │
+     │ Page 1: Executive Summary                                                                                          │
+     │                                                                                                                    │
+     │ - KPI Cards: Total articles, success rate, best performing themes                                                  │
+     │ - Timeline View: Article frequency vs market performance                                                           │
+     │ - Heatmap: Monthly correlation matrix                                                                              │
+     │ - Top Performers: Best and worst predictions with explanations                                                     │
+     │                                                                                                                    │
+     │ Page 2: Weekly Analysis                                                                                            │
+     │                                                                                                                    │
+     │ - Weekly Comparison Charts: Article signals vs weekly returns                                                      │
+     │ - Signal Distribution: Pie charts of weekly signal types                                                           │
+     │ - Performance Metrics: Weekly Sharpe ratio, max drawdown, win rate                                                 │
+     │ - Interactive Timeline: Click weeks to drill down into articles                                                    │
+     │                                                                                                                    │
+     │ Page 3: Monthly Deep Dive                                                                                          │
+     │                                                                                                                    │
+     │ - Monthly Performance Attribution: Which themes drove monthly returns                                              │
+     │ - Volatility Analysis: Predicted vs realized monthly volatility                                                    │
+     │ - Flow Impact Assessment: Large flows identified vs price impact                                                   │
+     │ - Market Regime Indicators: Bear/bull signal accuracy by month                                                     │
+     │                                                                                                                    │
+     │ Page 4: Article-Price Correlation                                                                                  │
+     │                                                                                                                    │
+     │ - Scatter Plots: Signal strength vs subsequent returns                                                             │
+     │ - Regression Lines: Trend analysis with confidence intervals                                                       │
+     │ - Correlation Coefficients: Statistical significance testing                                                       │
+     │ - Time Series Analysis: Rolling correlation over time                                                              │
+     │                                                                                                                    │
+     │ Page 5: Strategy Backtesting                                                                                       │
+     │                                                                                                                    │
+     │ - Strategy Performance: Cumulative returns from article signals                                                    │
+     │ - Risk Metrics: Volatility, Sharpe ratio, maximum drawdown                                                         │
+     │ - Trade Analysis: Individual trade details with entry/exit points                                                  │
+     │ - Benchmark Comparison: vs buy-and-hold, market indices                                                            │
+     │                                                                                                                    │
+     │ Page 6: Image Analysis Integration                                                                                 │
+     │                                                                                                                    │
+     │ - Chart Pattern Recognition: Success rate of visual predictions                                                    │
+     │ - Technical Indicator Accuracy: Support/resistance from images                                                     │
+     │ - Visual Sentiment Analysis: Image-based market sentiment                                                          │
+     │ - OCR Text Mining: Key phrases from chart images                                                                   │
+     │                                                                                                                    │
+     │ Page 7: Advanced Analytics                                                                                         │
+     │                                                                                                                    │
+     │ - Machine Learning Models: Feature importance rankings                                                             │
+     │ - Clustering Analysis: Similar market period identification                                                        │
+     │ - Predictive Modeling: Future signal strength prediction                                                           │
+     │ - Risk Attribution: Source of prediction errors                                                                    │
+     │                                                                                                                    │
+     │ 🛠️ Technical Implementation                                                                                       │
+     │                                                                                                                    │
+     │ Core Files to Create:                                                                                              │
+     │                                                                                                                    │
+     │ 1. streamlit_dashboard.py - Main dashboard application                                                             │
+     │ 2. data_processor.py - Data loading and preprocessing                                                              │
+     │ 3. analysis_engine.py - Core analysis calculations                                                                 │
+     │ 4. visualization_utils.py - Chart generation utilities                                                             │
+     │ 5. backtesting_engine.py - Strategy testing framework                                                              │
+     │ 6. correlation_analyzer.py - Statistical correlation analysis                                                      │
+     │                                                                                                                    │
+     │ Key Libraries:                                                                                                     │
+     │                                                                                                                    │
+     │ - Streamlit: Dashboard framework                                                                                   │
+     │ - Plotly: Interactive visualizations                                                                               │
+     │ - Pandas: Data manipulation                                                                                        │
+     │ - NumPy: Numerical calculations                                                                                    │
+     │ - Scikit-learn: ML models                                                                                          │
+     │ - Statsmodels: Statistical analysis                                                                                │
+     │                                                                                                                    │
+     │ Data Flow:                                                                                                         │
+     │                                                                                                                    │
+     │ 1. Load unified articles (126 articles with perfect dates)                                                         │
+     │ 2. Load price data (3,370 records with 49 indicators)                                                              │
+     │ 3. Create time interpolation between article dates                                                                 │
+     │ 4. Generate weekly/monthly aggregations                                                                            │
+     │ 5. Calculate correlation metrics and performance statistics                                                        │
+     │ 6. Render interactive visualizations                                                                               │
+     │                                                                                                                    │
+     │ Performance Features:                                                                                              │
+     │                                                                                                                    │
+     │ - Caching: @st.cache_data for expensive calculations                                                               │
+     │ - Lazy Loading: Load data on-demand for better performance                                                         │
+     │ - Progressive Loading: Show results as they're calculated                                                          │
+     │ - Memory Optimization: Efficient data structures for large datasets                                                │
+     │                                                                                                                    │
+     │ This comprehensive dashboard will provide unprecedented insights into the relationship between options analysis    │
+     │ articles and market performance, enabling sophisticated analysis of prediction accuracy, signal strength, and      │
+     │ market timing effectiveness across different time periods and market regimes. 

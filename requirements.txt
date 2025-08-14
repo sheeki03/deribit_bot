@@ -24,3 +24,12 @@ fastapi>=0.95.0
 uvicorn>=0.22.0
 python-dateutil>=2.8.2
 optuna>=3.0.0
+
+# Financial data providers
+yfinance>=0.2.0
+alpha-vantage>=2.3.1
+fredapi>=0.4.3
+
+# Web scraping with JavaScript support
+playwright>=1.40.0
+beautifulsoup4>=4.12.2
