@@ -90,13 +90,48 @@ def load_data():
             
         except Exception as e:
             st.error(f"Error loading data: {e}")
-            st.error("Please ensure all data files are available and properly formatted.")
+            st.error("**Data files not found!**")
+            st.info("""
+            **For Streamlit Cloud deployment, please ensure:**
+            1. `scraped_data/playwright/unified_articles_complete.json` exists
+            2. `data/price_data/combined_daily_prices.csv` exists
+            
+            **Or upload the files using the sidebar uploader.**
+            """)
             st.stop()
 
 def render_sidebar():
     """Render the sidebar with navigation and filters."""
     st.sidebar.title("📊 Options Analysis")
     st.sidebar.markdown("---")
+    
+    # Data upload section (if data is missing)
+    if not st.session_state.data_loaded:
+        with st.sidebar.expander("📁 Data Upload (Optional)", expanded=False):
+            st.info("Upload data files if not found automatically:")
+            
+            articles_file = st.file_uploader(
+                "Upload Articles JSON", 
+                type=['json'],
+                help="Upload unified_articles_complete.json"
+            )
+            
+            price_file = st.file_uploader(
+                "Upload Price Data CSV", 
+                type=['csv'],
+                help="Upload combined_daily_prices.csv"
+            )
+            
+            if articles_file is not None or price_file is not None:
+                if st.button("🔄 Reload Dashboard"):
+                    st.session_state.data_loaded = False
+                    st.session_state.uploaded_files = {
+                        'articles': articles_file,
+                        'prices': price_file
+                    }
+                    st.rerun()
+        
+        st.sidebar.markdown("---")
     
     # Navigation
     st.sidebar.subheader("🧭 Navigation")

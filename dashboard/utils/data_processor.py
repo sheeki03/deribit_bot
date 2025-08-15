@@ -60,15 +60,40 @@ class DataProcessor:
     
     def _load_unified_articles(self):
         """Load the unified articles dataset."""
-        unified_path = self.base_path / 'scraped_data' / 'playwright' / 'unified_articles_complete.json'
+        # Try multiple potential paths for deployment compatibility
+        potential_paths = [
+            self.base_path / 'scraped_data' / 'playwright' / 'unified_articles_complete.json',
+            Path('scraped_data') / 'playwright' / 'unified_articles_complete.json',
+            Path('.') / 'scraped_data' / 'playwright' / 'unified_articles_complete.json',
+            Path('scraped_data/playwright/unified_articles_complete.json'),  # Direct path for Streamlit
+            Path('data') / 'unified_articles_complete.json',
+            Path('unified_articles_complete.json')
+        ]
         
-        if not unified_path.exists():
-            raise FileNotFoundError(f"Unified articles file not found: {unified_path}")
+        unified_path = None
+        for path in potential_paths:
+            if path.exists():
+                unified_path = path
+                break
+        
+        if unified_path is None:
+            # Check for uploaded files in session state
+            if hasattr(st, 'session_state') and hasattr(st.session_state, 'uploaded_files'):
+                articles_file = st.session_state.uploaded_files.get('articles')
+                if articles_file is not None:
+                    self.unified_data = json.load(articles_file)
+                    self.articles = self.unified_data.get('unified_articles', [])
+                    return
+            
+            # If no data found, raise error with clear instructions
+            raise FileNotFoundError(
+                "Articles data not found. Please upload 'unified_articles_complete.json' or ensure it exists in the 'scraped_data/playwright/' directory."
+            )
         
         with open(unified_path, 'r', encoding='utf-8') as f:
             self.unified_data = json.load(f)
         
-        self.articles = self.unified_data['unified_articles']
+        self.articles = self.unified_data.get('unified_articles', [])
         
         # Convert articles to DataFrame for easier processing  
         self.articles_df = pd.DataFrame([
@@ -106,10 +131,37 @@ class DataProcessor:
     
     def _load_price_data(self):
         """Load the combined price data."""
-        price_path = self.base_path / 'data' / 'price_data' / 'combined_daily_prices.csv'
+        # Try multiple potential paths for deployment compatibility
+        potential_paths = [
+            self.base_path / 'data' / 'price_data' / 'combined_daily_prices.csv',
+            Path('data') / 'price_data' / 'combined_daily_prices.csv',
+            Path('.') / 'data' / 'price_data' / 'combined_daily_prices.csv',
+            Path('data/price_data/combined_daily_prices.csv'),  # Direct path for Streamlit
+            Path('data') / 'combined_daily_prices.csv',
+            Path('combined_daily_prices.csv')
+        ]
         
-        if not price_path.exists():
-            raise FileNotFoundError(f"Price data file not found: {price_path}")
+        price_path = None
+        for path in potential_paths:
+            if path.exists():
+                price_path = path
+                break
+        
+        if price_path is None:
+            # Check for uploaded files in session state
+            if hasattr(st, 'session_state') and hasattr(st.session_state, 'uploaded_files'):
+                price_file = st.session_state.uploaded_files.get('prices')
+                if price_file is not None:
+                    self.price_data = pd.read_csv(price_file)
+                    self.price_data['date'] = pd.to_datetime(self.price_data['date'])
+                    self.price_data = self.price_data.sort_values(['asset', 'date'])
+                    logger.info(f"Loaded {len(self.price_data)} price records from upload")
+                    return
+            
+            # If no data found, raise error with clear instructions
+            raise FileNotFoundError(
+                "Price data not found. Please upload 'combined_daily_prices.csv' or ensure it exists in the 'data/price_data/' directory."
+            )
         
         # Load price data
         self.price_data = pd.read_csv(price_path)
