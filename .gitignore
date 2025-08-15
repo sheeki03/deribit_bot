@@ -42,8 +42,8 @@ ENV/
 *.swo
 *~
 
-# Data and outputs (directory-scoped)
-data/
+# Data and outputs (directory-scoped) - ALLOW ESSENTIAL DATA FILES
+# data/  # Commented out to allow essential data files
 images/
 logs/
 *.log
@@ -51,12 +51,21 @@ logs/
 *.pkl
 *.parquet
 
-# Generated outputs in specific directories
+# Generated outputs in specific directories (keep these ignored)
 data/**/outputs/**/*.csv
 test-results/**/*.json
-scraped_data/**/*.json
+# scraped_data/**/*.json  # Commented out to allow essential scraped data
 test_data/**/*.json
 data/outputs/**/*.csv
+
+# Ignore specific large files but allow essential ones
+data/cache/
+data/training/
+data/models/
+scraped_data/accurate/
+scraped_data/cleaned/
+# Allow: scraped_data/playwright/
+# Allow: data/price_data/
 
 # Model files
 models/
