@@ -72,6 +72,51 @@ def load_data():
     if st.session_state.data_loaded:
         return st.session_state.data_processor, st.session_state.analysis_engine
     
+    # Debug mode toggle
+    debug_mode = st.sidebar.checkbox("🔍 Debug Mode", help="Show file path debugging info")
+    
+    if debug_mode:
+        st.write("## 🔍 Debug Information")
+        
+        # Show debug info
+        from pathlib import Path
+        import glob
+        import os
+        
+        st.write(f"**Working Directory:** `{Path.cwd()}`")
+        
+        # Check for target files
+        target_files = [
+            "scraped_data/playwright/unified_articles_complete.json",
+            "data/price_data/combined_daily_prices.csv"
+        ]
+        
+        for file_path in target_files:
+            path = Path(file_path)
+            if path.exists():
+                size = path.stat().st_size / (1024*1024)
+                st.success(f"✅ Found: `{file_path}` ({size:.1f}MB)")
+            else:
+                st.error(f"❌ Missing: `{file_path}`")
+        
+        # Try glob search
+        st.write("**Glob Search Results:**")
+        for pattern in ["**/unified_articles_complete.json", "**/combined_daily_prices.csv"]:
+            matches = glob.glob(pattern, recursive=True)
+            if matches:
+                st.write(f"Pattern `{pattern}`: {matches}")
+            else:
+                st.write(f"Pattern `{pattern}`: No matches")
+        
+        # List some directories
+        st.write("**Available Directories:**")
+        try:
+            for item in sorted(Path.cwd().iterdir()):
+                if item.is_dir():
+                    st.write(f"📂 `{item.name}/`")
+        except Exception as e:
+            st.error(f"Error listing directories: {e}")
+    
     with st.spinner("Loading unified dataset..."):
         try:
             # Initialize data processor
@@ -91,6 +136,12 @@ def load_data():
         except Exception as e:
             st.error(f"Error loading data: {e}")
             st.error("**Data files not found!**")
+            
+            if debug_mode:
+                st.write("**Detailed Error:**")
+                import traceback
+                st.code(traceback.format_exc())
+            
             st.info("""
             **For Streamlit Cloud deployment, please ensure:**
             1. `scraped_data/playwright/unified_articles_complete.json` exists

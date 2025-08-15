@@ -60,27 +60,54 @@ class DataProcessor:
     
     def _load_unified_articles(self):
         """Load the unified articles dataset."""
+        import glob
+        
         # Try multiple potential paths for deployment compatibility
         potential_paths = [
+            # Original paths
             self.base_path / 'scraped_data' / 'playwright' / 'unified_articles_complete.json',
             Path('scraped_data') / 'playwright' / 'unified_articles_complete.json',
             Path('.') / 'scraped_data' / 'playwright' / 'unified_articles_complete.json',
             Path('scraped_data/playwright/unified_articles_complete.json'),  # Direct path for Streamlit
-            Path('data') / 'unified_articles_complete.json',
-            Path('unified_articles_complete.json')
+            # Root directory paths (for Streamlit Cloud compatibility)
+            Path('unified_articles_complete.json'),
+            Path('.') / 'unified_articles_complete.json',
+            self.base_path / 'unified_articles_complete.json',
+            # Fallback paths
+            Path('data') / 'unified_articles_complete.json'
         ]
         
         unified_path = None
+        logger.info("Searching for articles data...")
+        
         for path in potential_paths:
+            logger.info(f"Checking path: {path} (exists: {path.exists()})")
             if path.exists():
                 unified_path = path
                 break
+        
+        # If not found, try glob search
+        if unified_path is None:
+            logger.info("Path search failed, trying glob search...")
+            glob_patterns = [
+                "**/unified_articles_complete.json",
+                "*/unified_articles_complete.json", 
+                "unified_articles_complete.json"
+            ]
+            
+            for pattern in glob_patterns:
+                matches = glob.glob(pattern, recursive=True)
+                logger.info(f"Glob pattern '{pattern}' found: {matches}")
+                if matches:
+                    unified_path = Path(matches[0])
+                    break
         
         if unified_path is None:
             # Check for uploaded files in session state
             if hasattr(st, 'session_state') and hasattr(st.session_state, 'uploaded_files'):
                 articles_file = st.session_state.uploaded_files.get('articles')
                 if articles_file is not None:
+                    logger.info("Loading from uploaded file")
                     self.unified_data = json.load(articles_file)
                     self.articles = self.unified_data.get('unified_articles', [])
                     return
@@ -89,6 +116,8 @@ class DataProcessor:
             raise FileNotFoundError(
                 "Articles data not found. Please upload 'unified_articles_complete.json' or ensure it exists in the 'scraped_data/playwright/' directory."
             )
+        
+        logger.info(f"Loading articles from: {unified_path}")
         
         with open(unified_path, 'r', encoding='utf-8') as f:
             self.unified_data = json.load(f)
@@ -131,27 +160,54 @@ class DataProcessor:
     
     def _load_price_data(self):
         """Load the combined price data."""
+        import glob
+        
         # Try multiple potential paths for deployment compatibility
         potential_paths = [
+            # Original paths
             self.base_path / 'data' / 'price_data' / 'combined_daily_prices.csv',
             Path('data') / 'price_data' / 'combined_daily_prices.csv',
             Path('.') / 'data' / 'price_data' / 'combined_daily_prices.csv',
             Path('data/price_data/combined_daily_prices.csv'),  # Direct path for Streamlit
-            Path('data') / 'combined_daily_prices.csv',
-            Path('combined_daily_prices.csv')
+            # Root directory paths (for Streamlit Cloud compatibility)
+            Path('combined_daily_prices.csv'),
+            Path('.') / 'combined_daily_prices.csv',
+            self.base_path / 'combined_daily_prices.csv',
+            # Fallback paths
+            Path('data') / 'combined_daily_prices.csv'
         ]
         
         price_path = None
+        logger.info("Searching for price data...")
+        
         for path in potential_paths:
+            logger.info(f"Checking path: {path} (exists: {path.exists()})")
             if path.exists():
                 price_path = path
                 break
+        
+        # If not found, try glob search
+        if price_path is None:
+            logger.info("Path search failed, trying glob search...")
+            glob_patterns = [
+                "**/combined_daily_prices.csv",
+                "*/combined_daily_prices.csv",
+                "combined_daily_prices.csv"
+            ]
+            
+            for pattern in glob_patterns:
+                matches = glob.glob(pattern, recursive=True)
+                logger.info(f"Glob pattern '{pattern}' found: {matches}")
+                if matches:
+                    price_path = Path(matches[0])
+                    break
         
         if price_path is None:
             # Check for uploaded files in session state
             if hasattr(st, 'session_state') and hasattr(st.session_state, 'uploaded_files'):
                 price_file = st.session_state.uploaded_files.get('prices')
                 if price_file is not None:
+                    logger.info("Loading from uploaded file")
                     self.price_data = pd.read_csv(price_file)
                     self.price_data['date'] = pd.to_datetime(self.price_data['date'])
                     self.price_data = self.price_data.sort_values(['asset', 'date'])
@@ -162,6 +218,8 @@ class DataProcessor:
             raise FileNotFoundError(
                 "Price data not found. Please upload 'combined_daily_prices.csv' or ensure it exists in the 'data/price_data/' directory."
             )
+        
+        logger.info(f"Loading price data from: {price_path}")
         
         # Load price data
         self.price_data = pd.read_csv(price_path)

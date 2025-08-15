@@ -154,3 +154,9 @@ coverage.xml
 .cursor/scratchpad.md
 .windsurfrules
 CLAUDE.md
+
+# Root directory data copies (for Streamlit Cloud compatibility)
+/unified_articles_complete.json
+/combined_daily_prices.csv
+debug_paths.py
+copy_data_for_streamlit.py
