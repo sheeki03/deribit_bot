@@ -5,16 +5,16 @@ services:
     image: postgres:15-alpine
     container_name: deribit_postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-deribit_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-deribit_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-deribit_flows}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-deribit_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -47,7 +47,7 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
@@ -69,7 +69,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
@@ -88,7 +88,7 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
@@ -105,7 +105,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-deribit_pass}@postgres:5432/${POSTGRES_DB:-deribit_flows}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
