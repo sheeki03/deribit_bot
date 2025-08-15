@@ -288,14 +288,29 @@ class UnifiedOptionsAnalyzer:
             df = price_loader.load_asset_data(asset)
             
             # Find the record for the specific date
-            target_date = pd.to_datetime(date_str).date()
+            target_date = pd.to_datetime(date_str)
+            if target_date.tz is not None:
+                target_date = target_date.tz_localize(None)
+            target_date = target_date.date()
+            
+            # Ensure df['date'] is timezone-naive before creating date_only
+            if df['date'].dt.tz is not None:
+                df['date'] = df['date'].dt.tz_localize(None)
             df['date_only'] = df['date'].dt.date
             
             # Find exact or closest match
             exact_match = df[df['date_only'] == target_date]
             if exact_match.empty:
-                # Find closest within 7 days
-                df['date_diff'] = abs(df['date'] - pd.to_datetime(date_str))
+                # Find closest within 7 days - ensure timezone compatibility
+                target_dt = pd.to_datetime(date_str)
+                if target_dt.tz is not None:
+                    target_dt = target_dt.tz_localize(None)
+                
+                # Ensure df['date'] is also timezone-naive
+                if df['date'].dt.tz is not None:
+                    df['date'] = df['date'].dt.tz_localize(None)
+                
+                df['date_diff'] = abs(df['date'] - target_dt)
                 closest = df[df['date_diff'] <= pd.Timedelta(days=7)].sort_values('date_diff')
                 if closest.empty:
                     return {}
@@ -311,7 +326,10 @@ class UnifiedOptionsAnalyzer:
                 result['price_change_1d'] = row['return_1d'] * 100
             
             # Calculate 7-day change manually
-            date_7d_ago = pd.to_datetime(date_str) - timedelta(days=7)
+            date_7d_ago = pd.to_datetime(date_str)
+            if date_7d_ago.tz is not None:
+                date_7d_ago = date_7d_ago.tz_localize(None)
+            date_7d_ago = date_7d_ago - timedelta(days=7)
             past_7d = df[df['date'] <= date_7d_ago]
             if not past_7d.empty:
                 past_price = past_7d.iloc[-1]['close']
@@ -325,7 +343,13 @@ class UnifiedOptionsAnalyzer:
             
             # Volatility percentile (position of current vol in last 90 days)
             if 'volatility_30d' in row and pd.notna(row['volatility_30d']):
-                recent_90d = df[df['date'] <= pd.to_datetime(date_str)].tail(90)
+                target_date_90d = pd.to_datetime(date_str)
+                if target_date_90d.tz is not None:
+                    target_date_90d = target_date_90d.tz_localize(None)
+                # Ensure df['date'] is timezone-naive for comparison
+                if df['date'].dt.tz is not None:
+                    df['date'] = df['date'].dt.tz_localize(None)
+                recent_90d = df[df['date'] <= target_date_90d].tail(90)
                 if len(recent_90d) > 10:
                     vol_rank = (recent_90d['volatility_30d'] <= row['volatility_30d']).sum()
                     result['vol_percentile_30d'] = (vol_rank / len(recent_90d)) * 100
@@ -632,6 +656,25 @@ class UnifiedOptionsAnalyzer:
             suggestions['preferred_strategies'].extend(['long_puts', 'bear_spreads'])
         
         return suggestions
+    
+    def clear_cache(self) -> None:
+        """Clear all cached analysis results for fresh backtesting.
+        
+        This method should be called before running backtests to ensure
+        fresh analysis results rather than cached ones.
+        """
+        with self._cache_lock:
+            cache_size = len(self._analysis_cache)
+            self._analysis_cache.clear()
+            logger.info(f"Cleared analysis cache ({cache_size} entries)")
+    
+    def get_cache_info(self) -> Dict[str, Any]:
+        """Get information about current cache state."""
+        with self._cache_lock:
+            return {
+                'cache_size': len(self._analysis_cache),
+                'cached_dates': list(self._analysis_cache.keys())
+            }
 
 
 # Global instance

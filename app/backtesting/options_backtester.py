@@ -19,6 +19,14 @@ from app.market_data.price_data_loader import price_loader
 
 logger = logging.getLogger(__name__)
 
+def _normalize_datetime(dt_obj):
+    """Convert datetime to timezone-naive to avoid timezone conflicts."""
+    if isinstance(dt_obj, str):
+        dt_obj = pd.to_datetime(dt_obj)
+    elif hasattr(dt_obj, 'tz') and dt_obj.tz is not None:
+        dt_obj = dt_obj.tz_localize(None)
+    return dt_obj
+
 @dataclass
 class OptionsContract:
     """Represents an options contract."""
@@ -91,11 +99,42 @@ class LongCallStrategy(OptionsStrategy):
                  volatility_threshold: float = 30.0,
                  max_days_to_expiry: int = 30,
                  profit_target: float = 2.0,
-                 stop_loss: float = -0.5):
-        self.volatility_threshold = volatility_threshold
-        self.max_days_to_expiry = max_days_to_expiry
-        self.profit_target = profit_target
-        self.stop_loss = stop_loss
+                 stop_loss: float = -0.5,
+                 randomize_params: bool = False,
+                 random_seed: Optional[int] = None):
+        """Initialize strategy with optional parameter randomization.
+        
+        Args:
+            volatility_threshold: Maximum volatility for entry
+            max_days_to_expiry: Maximum days to expiration
+            profit_target: Profit target multiplier
+            stop_loss: Stop loss threshold (negative)
+            randomize_params: If True, add random variation to parameters
+            random_seed: Random seed for reproducible randomization
+        """
+        if randomize_params:
+            if random_seed is not None:
+                np.random.seed(random_seed)
+            
+            # Add ±10% random variation to parameters
+            vol_var = np.random.uniform(0.9, 1.1)
+            profit_var = np.random.uniform(0.9, 1.1)
+            stop_var = np.random.uniform(0.9, 1.1)
+            days_var = int(np.random.uniform(0.8, 1.2))
+            
+            self.volatility_threshold = volatility_threshold * vol_var
+            self.profit_target = profit_target * profit_var
+            self.stop_loss = stop_loss * stop_var
+            self.max_days_to_expiry = max(7, max_days_to_expiry * days_var)
+            
+            logger.info(f"Randomized strategy params: vol_thresh={self.volatility_threshold:.1f}, "
+                       f"profit_target={self.profit_target:.2f}, stop_loss={self.stop_loss:.2f}, "
+                       f"max_days={self.max_days_to_expiry}")
+        else:
+            self.volatility_threshold = volatility_threshold
+            self.max_days_to_expiry = max_days_to_expiry
+            self.profit_target = profit_target
+            self.stop_loss = stop_loss
     
     def should_enter(self, context: Dict[str, Any]) -> bool:
         """Enter when volatility is low and trend is bullish."""
@@ -130,7 +169,7 @@ class LongCallStrategy(OptionsStrategy):
         days_to_expiry = self.max_days_to_expiry
         premium = self._estimate_option_premium(spot_price, strike, volatility, days_to_expiry, 'call')
         
-        expiry = (pd.to_datetime(context['date']) + timedelta(days=days_to_expiry)).strftime('%Y-%m-%d')
+        expiry = (_normalize_datetime(pd.to_datetime(context['date'])) + timedelta(days=days_to_expiry)).strftime('%Y-%m-%d')
         
         return [OptionsContract(
             symbol=f"{analysis.asset}-{expiry}-C-{strike}",
@@ -154,9 +193,9 @@ class LongCallStrategy(OptionsStrategy):
             return True
         
         # Time-based exit (7 days before expiry)
-        entry_date = pd.to_datetime(trade.entry_date)
-        current_date = pd.to_datetime(context['date'])
-        expiry_date = pd.to_datetime(trade.contracts[0].expiration)
+        entry_date = _normalize_datetime(pd.to_datetime(trade.entry_date))
+        current_date = _normalize_datetime(pd.to_datetime(context['date']))
+        expiry_date = _normalize_datetime(pd.to_datetime(trade.contracts[0].expiration))
         
         if (expiry_date - current_date).days <= 7:
             return True
@@ -175,8 +214,8 @@ class LongCallStrategy(OptionsStrategy):
             return 0.0
         
         spot_price = current_analysis.spot_price
-        current_date = pd.to_datetime(current_context['date'])
-        expiry_date = pd.to_datetime(contract.expiration)
+        current_date = _normalize_datetime(pd.to_datetime(current_context['date']))
+        expiry_date = _normalize_datetime(pd.to_datetime(contract.expiration))
         days_to_expiry = (expiry_date - current_date).days
         
         if days_to_expiry <= 0:
@@ -248,8 +287,10 @@ class OptionsBacktester:
         
         logger.info(f"Starting backtest for {strategy_name} on {asset} from {start_date} to {end_date}")
         
-        # Generate trading dates
-        date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+        # Generate trading dates - ensure timezone-naive processing
+        start_dt = _normalize_datetime(pd.to_datetime(start_date))
+        end_dt = _normalize_datetime(pd.to_datetime(end_date))
+        date_range = pd.date_range(start=start_dt, end=end_dt, freq='D')
         trading_dates = [d.strftime('%Y-%m-%d') for d in date_range]
         
         open_trades: List[BacktestTrade] = []
@@ -408,16 +449,47 @@ class OptionsBacktester:
 _thread_local = threading.local()
 
 
-def get_backtester() -> OptionsBacktester:
-    """Get a thread-local OptionsBacktester instance."""
-    if not hasattr(_thread_local, 'backtester'):
+def get_backtester(fresh_instance: bool = False) -> OptionsBacktester:
+    """Get a thread-local OptionsBacktester instance.
+    
+    Args:
+        fresh_instance: If True, creates a new instance and clears caches
+    """
+    if fresh_instance or not hasattr(_thread_local, 'backtester'):
+        # Clear analysis caches for fresh results
+        from app.analytics.unified_options_analyzer import unified_analyzer
+        unified_analyzer.clear_cache()
+        
+        # Clear price data cache too
+        price_loader.clear_cache()
+        
+        # Create new instance
         _thread_local.backtester = OptionsBacktester()
+        logger.info("Created fresh backtester instance with cleared caches")
     return _thread_local.backtester
 
 
 def run_simple_backtest(asset: str = 'BTC', 
                        start_date: str = '2025-07-01', 
-                       end_date: str = '2025-08-12') -> BacktestResults:
-    """Run a simple long call backtest."""
-    strategy = LongCallStrategy()
-    return get_backtester().backtest_strategy(strategy, asset, start_date, end_date)
+                       end_date: str = '2025-08-12',
+                       fresh_analysis: bool = True,
+                       randomize_strategy: bool = False,
+                       random_seed: Optional[int] = None,
+                       **strategy_params) -> BacktestResults:
+    """Run a simple long call backtest.
+    
+    Args:
+        asset: Asset to backtest ('BTC' or 'ETH')
+        start_date: Start date for backtest
+        end_date: End date for backtest
+        fresh_analysis: If True, clears caches for fresh analysis
+        randomize_strategy: If True, adds random variation to strategy parameters
+        random_seed: Random seed for reproducible randomization
+        **strategy_params: Additional strategy parameters (volatility_threshold, profit_target, etc.)
+    """
+    strategy = LongCallStrategy(
+        randomize_params=randomize_strategy,
+        random_seed=random_seed,
+        **strategy_params
+    )
+    return get_backtester(fresh_instance=fresh_analysis).backtest_strategy(strategy, asset, start_date, end_date)

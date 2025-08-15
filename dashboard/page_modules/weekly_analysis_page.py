@@ -412,7 +412,7 @@ def render_theme_transition_analysis(inter_df):
     inter_df_clean['start_article_theme'] = inter_df_clean['start_article_theme'].fillna('Unknown')
     inter_df_clean['end_article_theme'] = inter_df_clean['end_article_theme'].fillna('Unknown')
     
-    transition_perf = inter_df_clean.groupby(['start_article_theme', 'end_article_theme'])['period_return'].agg(['mean', 'count'])
+    transition_perf = inter_df_clean.groupby(['start_article_theme', 'end_article_theme'], observed=True)['period_return'].agg(['mean', 'count'])
     transition_perf = transition_perf.reset_index()
     transition_perf['transition'] = transition_perf['start_article_theme'] + ' → ' + transition_perf['end_article_theme']
     
@@ -741,7 +741,7 @@ def render_temporal_pattern_analysis(data_processor, analysis_engine, filters):
             
             with tab1:
                 # Day of week analysis
-                dow_performance = correlation_data.groupby('day_of_week')['period_return'].agg(['mean', 'count', 'std']).reset_index()
+                dow_performance = correlation_data.groupby('day_of_week', observed=True)['period_return'].agg(['mean', 'count', 'std']).reset_index()
                 dow_performance = dow_performance.sort_values('mean', ascending=False)
                 
                 fig = go.Figure()
@@ -775,7 +775,7 @@ def render_temporal_pattern_analysis(data_processor, analysis_engine, filters):
             
             with tab2:
                 # Monthly analysis
-                monthly_performance = correlation_data.groupby('month')['period_return'].agg(['mean', 'count']).reset_index()
+                monthly_performance = correlation_data.groupby('month', observed=True)['period_return'].agg(['mean', 'count']).reset_index()
                 
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
@@ -798,7 +798,7 @@ def render_temporal_pattern_analysis(data_processor, analysis_engine, filters):
             
             with tab3:
                 # Quarterly analysis 
-                quarterly_performance = correlation_data.groupby('quarter')['period_return'].agg(['mean', 'count', 'std']).reset_index()
+                quarterly_performance = correlation_data.groupby('quarter', observed=True)['period_return'].agg(['mean', 'count', 'std']).reset_index()
                 
                 col1, col2 = st.columns(2)
                 

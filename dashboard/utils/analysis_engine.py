@@ -64,7 +64,7 @@ class AnalysisEngine:
             }
         
         # Best performing theme
-        theme_performance = correlation_data.groupby('primary_theme')['period_return'].mean()
+        theme_performance = correlation_data.groupby('primary_theme', observed=True)['period_return'].mean()
         best_theme = theme_performance.idxmax() if not theme_performance.empty else 'N/A'
         best_theme_score = theme_performance.max() if not theme_performance.empty else 0.0
         
@@ -388,15 +388,15 @@ class AnalysisEngine:
         attribution = {}
         
         # Performance by theme
-        theme_perf = week_data.groupby('primary_theme')['period_return'].agg(['mean', 'std', 'count'])
+        theme_perf = week_data.groupby('primary_theme', observed=True)['period_return'].agg(['mean', 'std', 'count'])
         attribution['by_theme'] = theme_perf.to_dict('index')
         
         # Performance by directional bias
-        bias_perf = week_data.groupby('directional_bias')['period_return'].agg(['mean', 'std', 'count'])
+        bias_perf = week_data.groupby('directional_bias', observed=True)['period_return'].agg(['mean', 'std', 'count'])
         attribution['by_bias'] = bias_perf.to_dict('index')
         
         # Performance by market period
-        period_perf = week_data.groupby('market_period')['period_return'].agg(['mean', 'std', 'count'])
+        period_perf = week_data.groupby('market_period', observed=True)['period_return'].agg(['mean', 'std', 'count'])
         attribution['by_market_period'] = period_perf.to_dict('index')
         
         # Performance by signal strength quartiles
@@ -406,7 +406,7 @@ class AnalysisEngine:
             q=4, 
             labels=['Low', 'Medium-Low', 'Medium-High', 'High']
         )
-        signal_perf = week_data.groupby('signal_strength_quartile')['period_return'].agg(['mean', 'std', 'count'])
+        signal_perf = week_data.groupby('signal_strength_quartile', observed=True)['period_return'].agg(['mean', 'std', 'count'])
         attribution['by_signal_strength'] = signal_perf.to_dict('index')
         
         return attribution

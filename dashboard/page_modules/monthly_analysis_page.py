@@ -94,7 +94,7 @@ def render_monthly_analysis_content():
                 # Convert to datetime if needed and group by month
                 correlation_data_copy = correlation_data.copy()
                 correlation_data_copy['article_date'] = pd.to_datetime(correlation_data_copy['article_date'])
-                monthly_avg_return = correlation_data_copy.groupby(correlation_data_copy['article_date'].dt.to_period('M'))['period_return'].mean().mean()
+                monthly_avg_return = correlation_data_copy.groupby(correlation_data_copy['article_date'].dt.to_period('M'), observed=True)['period_return'].mean().mean()
                 st.metric("📈 Avg Monthly Return", f"{monthly_avg_return:.2%}" if pd.notna(monthly_avg_return) else "N/A")
             else:
                 st.metric("📈 Avg Monthly Return", "N/A")
@@ -104,7 +104,7 @@ def render_monthly_analysis_content():
                 # Convert to datetime if needed and group by month
                 correlation_data_copy = correlation_data.copy()
                 correlation_data_copy['article_date'] = pd.to_datetime(correlation_data_copy['article_date'])
-                monthly_vol = correlation_data_copy.groupby(correlation_data_copy['article_date'].dt.to_period('M'))['period_return'].std().mean()
+                monthly_vol = correlation_data_copy.groupby(correlation_data_copy['article_date'].dt.to_period('M'), observed=True)['period_return'].std().mean()
                 st.metric("📊 Avg Monthly Vol", f"{monthly_vol:.2%}" if pd.notna(monthly_vol) else "N/A")
             else:
                 st.metric("📊 Avg Monthly Vol", "N/A")
@@ -220,7 +220,7 @@ def render_monthly_heatmap(articles_df):
     articles_df['year'] = articles_df['date'].dt.year
     articles_df['month'] = articles_df['date'].dt.month
     
-    activity_matrix = articles_df.groupby(['year', 'month']).size().unstack(fill_value=0)
+    activity_matrix = articles_df.groupby(['year', 'month'], observed=True).size().unstack(fill_value=0)
     
     # Create heatmap
     fig = go.Figure(data=go.Heatmap(
@@ -326,7 +326,7 @@ def render_monthly_article_trends(analysis_engine, filters):
                 # Seasonal analysis
                 monthly_data_df = monthly_data.reset_index()
                 monthly_data_df['month'] = monthly_data_df['date'].dt.month
-                seasonal_activity = monthly_data_df.groupby('month')['article_count'].mean()
+                seasonal_activity = monthly_data_df.groupby('month', observed=True)['article_count'].mean()
                 peak_month = seasonal_activity.idxmax()
                 st.write(f"**Peak Season:** Month {peak_month} (avg {seasonal_activity[peak_month]:.1f} articles)")
     
@@ -566,7 +566,7 @@ def render_volatility_regime_analysis(articles_df, monthly_data_df):
         vol_regime_df = pd.DataFrame(articles_with_vol_regimes)
         
         # Signal strength by volatility regime
-        vol_signal_strength = vol_regime_df.groupby('vol_regime')['signal_strength'].agg(['mean', 'count'])
+        vol_signal_strength = vol_regime_df.groupby('vol_regime', observed=True)['signal_strength'].agg(['mean', 'count'])
         
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -598,7 +598,7 @@ def render_combined_regime_analysis(articles_df, monthly_data_df):
     
     with col1:
         # Regime distribution over time
-        regime_counts = monthly_data_df.groupby(['return_regime']).size()
+        regime_counts = monthly_data_df.groupby(['return_regime'], observed=True).size()
         
         if not regime_counts.empty:
             fig = go.Figure(data=[go.Pie(
@@ -624,7 +624,7 @@ def render_combined_regime_analysis(articles_df, monthly_data_df):
         
         if regime_activity:
             activity_df = pd.DataFrame(regime_activity)
-            regime_article_avg = activity_df.groupby('regime')['articles'].mean()
+            regime_article_avg = activity_df.groupby('regime', observed=True)['articles'].mean()
             
             fig = go.Figure()
             fig.add_trace(go.Bar(
@@ -667,7 +667,7 @@ def render_monthly_performance_attribution(analysis_engine, filters):
         
         with col1:
             # Performance by theme
-            theme_perf = monthly_corr_data.groupby('primary_theme', observed=False)['period_return'].agg(['mean', 'std', 'count'])
+            theme_perf = monthly_corr_data.groupby('primary_theme', observed=True)['period_return'].agg(['mean', 'std', 'count'])
             theme_perf = theme_perf.sort_values('mean', ascending=True)
             
             fig = go.Figure()
@@ -691,7 +691,7 @@ def render_monthly_performance_attribution(analysis_engine, filters):
         
         with col2:
             # Performance by market period
-            period_perf = monthly_corr_data.groupby('market_period')['period_return'].agg(['mean', 'count'])
+            period_perf = monthly_corr_data.groupby('market_period', observed=True)['period_return'].agg(['mean', 'count'])
             period_perf = period_perf.sort_values('mean', ascending=False)
             
             fig = go.Figure()
@@ -1310,7 +1310,7 @@ def render_seasonal_patterns(data_processor, analysis_engine, filters):
         with tab1:
             # Monthly seasonal patterns
             if 'btc_return_1d' in monthly_data_df.columns:
-                monthly_patterns = monthly_data_df.groupby('month_name')['btc_return_1d'].agg(['mean', 'std', 'count']).reset_index()
+                monthly_patterns = monthly_data_df.groupby('month_name', observed=True)['btc_return_1d'].agg(['mean', 'std', 'count']).reset_index()
                 
                 # Order months correctly
                 month_order = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -1350,7 +1350,7 @@ def render_seasonal_patterns(data_processor, analysis_engine, filters):
         with tab2:
             # Quarterly patterns
             if 'btc_return_1d' in monthly_data_df.columns:
-                quarterly_patterns = monthly_data_df.groupby('quarter')['btc_return_1d'].agg(['mean', 'std', 'count']).reset_index()
+                quarterly_patterns = monthly_data_df.groupby('quarter', observed=True)['btc_return_1d'].agg(['mean', 'std', 'count']).reset_index()
                 
                 col1, col2 = st.columns(2)
                 

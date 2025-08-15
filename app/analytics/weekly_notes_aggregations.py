@@ -63,7 +63,7 @@ def compute_metrics(rows: List[Dict[str, Any]], cfg: AggregationConfig) -> Dict[
 
         # Bucketed returns stats
         bs_df = (
-            sdf.groupby("sentiment_bucket")[ret_col]
+            sdf.groupby("sentiment_bucket", observed=True)[ret_col]
             .agg(["count", "mean", "median"])
             .rename(columns={"mean": "avg_return", "median": "median_return"})
             .reset_index()
@@ -92,7 +92,7 @@ def compute_metrics(rows: List[Dict[str, Any]], cfg: AggregationConfig) -> Dict[
         hits["hit"] = hits.apply(direction_hit, axis=1)
         hr_df = (
             hits.dropna(subset=["hit"])
-            .groupby("sentiment_bucket")["hit"]
+            .groupby("sentiment_bucket", observed=True)["hit"]
             .mean()
             .reset_index()
             .rename(columns={"hit": "hit_rate"})
@@ -107,14 +107,14 @@ def compute_metrics(rows: List[Dict[str, Any]], cfg: AggregationConfig) -> Dict[
         roll = roll.sort_values(by="week")
         # weekly means then per-bucket rolling transform
         weekly = (
-            roll.groupby(["sentiment_bucket", "week"])[ret_col]
+            roll.groupby(["sentiment_bucket", "week"], observed=True)[ret_col]
             .mean()
             .rename("weekly_mean")
             .reset_index()
         )
         weekly["rolling_avg_return"] = (
             weekly.sort_values(["sentiment_bucket", "week"])  # ensure order within bucket
-            .groupby("sentiment_bucket")["weekly_mean"]
+            .groupby("sentiment_bucket", observed=True)["weekly_mean"]
             .transform(lambda s: s.rolling(window=4, min_periods=1).mean())
         )
         rolling_trends = weekly[["sentiment_bucket", "week", "rolling_avg_return"]].copy()

@@ -24,6 +24,12 @@ class PriceDataLoader:
         self.data_dir = data_dir or (Path(__file__).parent.parent.parent / 'data' / 'price_data')
         self._cache: Dict[str, pd.DataFrame] = {}
     
+    def clear_cache(self) -> None:
+        """Clear all cached price data for fresh loading."""
+        cache_size = len(self._cache)
+        self._cache.clear()
+        logger.info(f"Cleared price data cache ({cache_size} assets)")
+    
     def get_available_assets(self) -> List[str]:
         """Get list of assets with available price data."""
         assets = []
