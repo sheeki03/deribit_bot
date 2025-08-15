@@ -12,16 +12,24 @@ import argparse
 
 
 def parse_trading_number(value_str: str) -> float:
-    """Parse numbers with K/M suffixes and comma formatting."""
-    if pd.isna(value_str) or value_str == '':
+    """Parse numbers with K/M suffixes and comma formatting with enhanced validation."""
+    if pd.isna(value_str) or value_str == '' or value_str is None:
         return np.nan
     
-    # Remove quotes and whitespace
-    value_str = str(value_str).strip().strip('"')
+    # Convert to string and validate
+    try:
+        value_str = str(value_str).strip().strip('"')
+        if not value_str or value_str.lower() in ['n/a', 'na', 'null', 'none']:
+            return np.nan
+    except (TypeError, AttributeError):
+        return np.nan
     
     # Handle percentage
     if value_str.endswith('%'):
-        return float(value_str.rstrip('%'))
+        try:
+            return float(value_str.rstrip('%'))
+        except ValueError:
+            return np.nan
     
     # Remove commas
     value_str = value_str.replace(',', '')
@@ -45,15 +53,16 @@ def parse_trading_number(value_str: str) -> float:
 
 
 def parse_trading_date(date_str: str) -> pd.Timestamp:
-    """Parse date in DD-MM-YYYY format."""
+    """Parse date in DD-MM-YYYY format with comprehensive error handling."""
     try:
         # Remove quotes and BOM
         date_str = str(date_str).strip().strip('"').strip('\ufeff')
         return pd.to_datetime(date_str, format='%d-%m-%Y')
-    except:
+    except (ValueError, TypeError) as e:
         try:
             return pd.to_datetime(date_str)
-        except:
+        except (ValueError, TypeError) as e2:
+            print(f"Warning: Could not parse date '{date_str}': {e2}")
             return pd.NaT
 
 
@@ -115,9 +124,14 @@ def format_price_csv(input_path: Path, asset: str) -> pd.DataFrame:
         df[f'sma_{window}'] = df['close'].rolling(window).mean()
         df[f'price_vs_sma_{window}'] = ((df['close'] - df[f'sma_{window}']) / df[f'sma_{window}']) * 100
     
-    # Support/resistance levels (local extremes)
-    df['is_local_high'] = (df['high'] == df['high'].rolling(5, center=True).max())
-    df['is_local_low'] = (df['low'] == df['low'].rolling(5, center=True).min())
+    # Support/resistance levels (local extremes) with edge case handling
+    try:
+        df['is_local_high'] = (df['high'] == df['high'].rolling(5, center=True, min_periods=1).max())
+        df['is_local_low'] = (df['low'] == df['low'].rolling(5, center=True, min_periods=1).min())
+    except Exception as e:
+        print(f"Warning: Could not calculate local extremes: {e}")
+        df['is_local_high'] = False
+        df['is_local_low'] = False
     
     # Price percentiles (for options strike selection)
     for window in [30, 60, 90]:
@@ -207,11 +221,11 @@ def main():
     else:
         print(f"❌ Ethereum file not found: {eth_path}")
     
-    # Create combined dataset
+    # Create combined dataset with validation
     dfs = []
-    if btc_path.exists():
+    if btc_path.exists() and 'btc_df' in locals() and not btc_df.empty:
         dfs.append(btc_df)
-    if eth_path.exists():
+    if eth_path.exists() and 'eth_df' in locals() and not eth_df.empty:
         dfs.append(eth_df)
     
     if dfs:

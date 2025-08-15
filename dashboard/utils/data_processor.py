@@ -35,25 +35,24 @@ class DataProcessor:
         # Date range info
         self.date_range: Dict[str, str] = {}
         
-    @st.cache_data
-    def load_all_data(_self):
+    def load_all_data(self):
         """Load all required data sources with caching."""
         logger.info("Loading unified dataset...")
         
         try:
             # Load unified articles
-            _self._load_unified_articles()
+            self._load_unified_articles()
             
             # Load price data
-            _self._load_price_data()
+            self._load_price_data()
             
             # Set date range
-            _self._set_date_range()
+            self._set_date_range()
             
             # Create processed datasets
-            _self._create_processed_datasets()
+            self._create_processed_datasets()
             
-            logger.info(f"Data loaded successfully: {len(_self.articles)} articles, {len(_self.price_data)} price records")
+            logger.info(f"Data loaded successfully: {len(self.articles)} articles, {len(self.price_data)} price records")
             
         except Exception as e:
             logger.error(f"Error loading data: {e}")
@@ -172,7 +171,7 @@ class DataProcessor:
             'low': 'min',
             'close': 'last',
             'volume': 'sum',
-            'return_1d': lambda x: (1 + x).prod() - 1,  # Compound weekly return
+            'return_1d': lambda x: ((1 + x/100).prod() - 1) * 100,  # Compound weekly return (handle percentage values)
             'volatility_7d': 'mean'
         }).add_prefix('btc_')
         
@@ -182,7 +181,7 @@ class DataProcessor:
             'low': 'min',
             'close': 'last',
             'volume': 'sum',
-            'return_1d': lambda x: (1 + x).prod() - 1,  # Compound weekly return
+            'return_1d': lambda x: ((1 + x/100).prod() - 1) * 100,  # Compound weekly return (handle percentage values)
             'volatility_7d': 'mean'
         }).add_prefix('eth_')
         
@@ -215,7 +214,7 @@ class DataProcessor:
             'low': 'min',
             'close': 'last',
             'volume': 'sum',
-            'return_1d': lambda x: (1 + x).prod() - 1,  # Compound monthly return
+            'return_1d': lambda x: ((1 + x/100).prod() - 1) * 100,  # Compound monthly return (handle percentage values)
             'volatility_30d': 'mean'
         }).add_prefix('btc_')
         
@@ -225,7 +224,7 @@ class DataProcessor:
             'low': 'min',
             'close': 'last',
             'volume': 'sum',
-            'return_1d': lambda x: (1 + x).prod() - 1,  # Compound monthly return
+            'return_1d': lambda x: ((1 + x/100).prod() - 1) * 100,  # Compound monthly return (handle percentage values)
             'volatility_30d': 'mean'
         }).add_prefix('eth_')
         

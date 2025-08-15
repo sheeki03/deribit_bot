@@ -30,6 +30,6 @@ yfinance>=0.2.0
 alpha-vantage>=2.3.1
 fredapi>=0.4.3
 
-# Web scraping with JavaScript support
+# Web scraping with JavaScript support  
+# IMPORTANT: After installation, run: playwright install chromium
 playwright>=1.40.0
-beautifulsoup4>=4.12.2

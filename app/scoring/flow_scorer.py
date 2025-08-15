@@ -5,7 +5,7 @@ import uuid
 
 from app.core.config import settings
 from app.core.logging import logger
-from app.ml.ensemble_scorer import ensemble_scorer, FlowScoreComponents
+from app.ml.multimodal_scorer import multimodal_scorer, MultimodalScoreComponents
 from app.market_data.coingecko_client import coingecko_client
 
 
@@ -35,7 +35,7 @@ class FlowScorer:
     async def score_article(self, 
                            article_data: Dict,
                            assets: List[str] = None,
-                           enrich_market_data: bool = True) -> Dict[str, FlowScoreComponents]:
+                           enrich_market_data: bool = True) -> Dict[str, MultimodalScoreComponents]:
         """
         Score an article for sentiment across specified assets.
         
@@ -45,7 +45,7 @@ class FlowScorer:
             enrich_market_data: Whether to fetch current market data
             
         Returns:
-            Dictionary mapping asset -> FlowScoreComponents
+            Dictionary mapping asset -> MultimodalScoreComponents
         """
         if assets is None:
             assets = ['BTC', 'ETH']
@@ -72,7 +72,7 @@ class FlowScorer:
             
             # Score for each asset in parallel
             scoring_tasks = [
-                ensemble_scorer.calculate_flowscore(article_data, asset)
+                multimodal_scorer.calculate_flowscore(article_data, asset)
                 for asset in assets
             ]
             
@@ -83,7 +83,7 @@ class FlowScorer:
             for i, asset in enumerate(assets):
                 if isinstance(scores[i], Exception):
                     logger.error(f"Scoring failed for {asset}: {scores[i]}")
-                    asset_scores[asset] = ensemble_scorer.create_neutral_score(f"Error: {scores[i]}")
+                    asset_scores[asset] = multimodal_scorer.create_neutral_score(f"Error: {scores[i]}")
                 else:
                     asset_scores[asset] = scores[i]
             
@@ -113,7 +113,7 @@ class FlowScorer:
                                   articles_data: List[Dict],
                                   assets: List[str] = None,
                                   max_concurrent: int = 5,
-                                  enrich_market_data: bool = True) -> Dict[str, Dict[str, FlowScoreComponents]]:
+                                  enrich_market_data: bool = True) -> Dict[str, Dict[str, MultimodalScoreComponents]]:
         """
         Score multiple articles efficiently with concurrency control.
         
@@ -123,7 +123,7 @@ class FlowScorer:
             max_concurrent: Maximum concurrent scoring operations
             
         Returns:
-            Dictionary mapping article_url -> {asset -> FlowScoreComponents}
+            Dictionary mapping article_url -> {asset -> MultimodalScoreComponents}
         """
         if assets is None:
             assets = ['BTC', 'ETH']
@@ -236,7 +236,7 @@ class FlowScorer:
     
     async def _check_alert_conditions(self, 
                                      article_data: Dict,
-                                     asset_scores: Dict[str, FlowScoreComponents]):
+                                     asset_scores: Dict[str, MultimodalScoreComponents]):
         """Check if any scores meet alert conditions."""
         try:
             alerts_to_send = []
@@ -289,10 +289,10 @@ class FlowScorer:
             )
             # TODO: Implement Telegram alerts
     
-    def _create_neutral_scores(self, assets: List[str], reason: str) -> Dict[str, FlowScoreComponents]:
+    def _create_neutral_scores(self, assets: List[str], reason: str) -> Dict[str, MultimodalScoreComponents]:
         """Create neutral scores for all assets."""
         return {
-            asset: ensemble_scorer.create_neutral_score(reason)
+            asset: multimodal_scorer.create_neutral_score(reason)
             for asset in assets
         }
     
@@ -367,7 +367,7 @@ class FlowScorer:
                 }
         
         # Add ensemble statistics
-        stats['ensemble'] = ensemble_scorer.get_scoring_stats()
+        stats['ensemble'] = multimodal_scorer.get_scoring_stats()
         
         return stats
     
@@ -385,6 +385,64 @@ class FlowScorer:
         
         self.processed_articles = dict(recent_articles)
         logger.info(f"Cleared old articles, kept {keep_recent} most recent")
+    
+    def get_historical_scores_for_backtest(self, period: str) -> List[Dict]:
+        """Get historical FlowScore data for backtesting purposes."""
+        if not self.processed_articles:
+            logger.warning("No processed articles available for backtesting")
+            return []
+        
+        # Convert period to days for filtering
+        period_days = {
+            "Last 7 days": 7,
+            "Last 30 days": 30,
+            "Last 90 days": 90,
+            "All available data": 9999
+        }.get(period, 30)
+        
+        # Filter articles by date
+        from datetime import datetime, timedelta
+        cutoff_date = datetime.now() - timedelta(days=period_days)
+        
+        filtered_articles = []
+        for url, data in self.processed_articles.items():
+            article_timestamp = data.get('timestamp', datetime.now())
+            if isinstance(article_timestamp, str):
+                try:
+                    article_timestamp = datetime.fromisoformat(article_timestamp)
+                except ValueError:
+                    continue
+            
+            if article_timestamp >= cutoff_date:
+                # Format for backtesting
+                backtest_entry = {
+                    'timestamp': article_timestamp,
+                    'url': url,
+                    'title': data['article_data'].get('title', ''),
+                    'published_at': data['article_data'].get('published_at'),
+                    'scores': {}
+                }
+                
+                # Extract scores for each asset
+                for asset, components in data['scores'].items():
+                    backtest_entry['scores'][asset] = {
+                        'score': components.final_score,
+                        'confidence': components.overall_confidence,
+                        'components': {
+                            'xgboost': getattr(components, 'xgboost_score', 0),
+                            'finbert': getattr(components, 'finbert_score', 0),
+                            'vision': getattr(components, 'vision_score', 0),
+                            'market_context': getattr(components, 'market_context_score', 0)
+                        }
+                    }
+                
+                filtered_articles.append(backtest_entry)
+        
+        # Sort by timestamp for proper backtesting order
+        filtered_articles.sort(key=lambda x: x['timestamp'])
+        
+        logger.info(f"Retrieved {len(filtered_articles)} articles for backtesting ({period})")
+        return filtered_articles
 
 
 # Global flow scorer instance

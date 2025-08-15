@@ -12,7 +12,7 @@ from PIL import Image
 
 from app.core.config import settings
 from app.core.logging import logger
-from app.ml.ensemble_scorer import FlowScoreComponents
+from app.ml.multimodal_scorer import MultimodalScoreComponents
 
 
 class TelegramNotifier:
@@ -74,7 +74,7 @@ class TelegramNotifier:
     
     async def send_flowscore_alert(self, 
                                   article_data: Dict,
-                                  asset_scores: Dict[str, FlowScoreComponents],
+                                  asset_scores: Dict[str, MultimodalScoreComponents],
                                   historical_context: Optional[Dict] = None) -> bool:
         """
         Send FlowScore alert with comprehensive analysis.
@@ -129,7 +129,7 @@ class TelegramNotifier:
             logger.error(f"Failed to send Telegram alert: {e}")
             return False
     
-    def _should_send_alert(self, asset_scores: Dict[str, FlowScoreComponents]) -> bool:
+    def _should_send_alert(self, asset_scores: Dict[str, MultimodalScoreComponents]) -> bool:
         """Determine if alert should be sent based on thresholds and rate limiting."""
         
         # Check if any score meets alert criteria
@@ -173,7 +173,7 @@ class TelegramNotifier:
         
         return True
     
-    def _determine_alert_level(self, asset_scores: Dict[str, FlowScoreComponents]) -> str:
+    def _determine_alert_level(self, asset_scores: Dict[str, MultimodalScoreComponents]) -> str:
         """Determine alert level based on scores."""
         max_abs_score = 0
         max_confidence = 0
@@ -192,7 +192,7 @@ class TelegramNotifier:
     
     def _format_alert_message(self, 
                             article_data: Dict,
-                            asset_scores: Dict[str, FlowScoreComponents],
+                            asset_scores: Dict[str, MultimodalScoreComponents],
                             alert_level: str,
                             historical_context: Optional[Dict] = None) -> str:
         """Format comprehensive alert message."""
@@ -286,7 +286,7 @@ class TelegramNotifier:
     
     def _create_inline_keyboard(self, 
                               article_data: Dict,
-                              asset_scores: Dict[str, FlowScoreComponents]) -> InlineKeyboardMarkup:
+                              asset_scores: Dict[str, MultimodalScoreComponents]) -> InlineKeyboardMarkup:
         """Create inline keyboard with quick action buttons."""
         
         buttons = []
@@ -523,7 +523,7 @@ class TelegramNotifier:
             logger.error(f"Failed to send daily summary: {e}")
             return False
     
-    def _generate_alert_key(self, asset_scores: Dict[str, FlowScoreComponents]) -> str:
+    def _generate_alert_key(self, asset_scores: Dict[str, MultimodalScoreComponents]) -> str:
         """Generate key for alert cooldown tracking."""
         # Create a key based on score ranges to group similar alerts
         key_parts = []
@@ -535,7 +535,7 @@ class TelegramNotifier:
         
         return "_".join(sorted(key_parts))
     
-    def _update_alert_tracking(self, asset_scores: Dict[str, FlowScoreComponents]):
+    def _update_alert_tracking(self, asset_scores: Dict[str, MultimodalScoreComponents]):
         """Update alert tracking for rate limiting."""
         current_time = datetime.now()
         

@@ -89,8 +89,9 @@ class PriceDataLoader:
         if not exact_match.empty:
             row = exact_match.iloc[0]
         else:
-            # Find closest date (within 7 days)
-            df['date_diff'] = abs(df['date'] - pd.to_datetime(target_date))
+            # Find closest date (within 7 days)  
+            target_dt = pd.to_datetime(target_date, utc=True).tz_convert(None)  # Handle timezone awareness
+            df['date_diff'] = abs(df['date'] - target_dt)
             closest = df[df['date_diff'] <= pd.Timedelta(days=7)].sort_values('date_diff')
             
             if closest.empty:
@@ -180,7 +181,7 @@ class PriceDataLoader:
             'recent_low_30d': context_df['low'].min(),
             'price_change_30d': ((current_price - context_df.iloc[0]['close']) / context_df.iloc[0]['close']) * 100,
             'volatility_regime': 'high' if price_data.get('volatility_30d', 0) > 50 else 'normal' if price_data.get('volatility_30d', 0) > 25 else 'low',
-            'trend_direction': 'up' if price_data.get('price_vs_sma_14', 0) > 2 else 'down' if price_data.get('price_vs_sma_14', 0) < -2 else 'sideways',
+            'trend_direction': 'up' if price_data.get('price_vs_sma_14') and price_data['price_vs_sma_14'] > 2 else 'down' if price_data.get('price_vs_sma_14') and price_data['price_vs_sma_14'] < -2 else 'sideways',
             'suggested_strikes': {
                 'otm_calls': [current_price * mult for mult in [1.05, 1.10, 1.15, 1.20]],
                 'atm_range': [current_price * mult for mult in [0.98, 1.00, 1.02]],

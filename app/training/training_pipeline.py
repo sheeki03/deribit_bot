@@ -18,7 +18,7 @@ from app.market_data.coingecko_client import coingecko_client
 from app.ml.xgboost_model import xgboost_model
 from app.ml.finbert_model import finbert_model
 from app.ml.feature_extractors import feature_extractor
-from app.ml.ensemble_scorer import ensemble_scorer
+from app.ml.multimodal_scorer import multimodal_scorer
 from app.scoring.flow_scorer import flow_scorer
 
 

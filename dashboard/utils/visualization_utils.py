@@ -115,18 +115,26 @@ class VisualizationUtils:
             hover_data=[col for col in data.columns if col not in [x_col, y_col]]
         )
         
-        # Add trend line
+        # Add trend line (with array length validation)
         if len(data) > 1:
-            z = np.polyfit(data[x_col].dropna(), data[y_col].dropna(), 1)
-            p = np.poly1d(z)
+            x_clean = data[x_col].dropna()
+            y_clean = data[y_col].dropna()
             
-            fig.add_trace(go.Scatter(
-                x=data[x_col],
-                y=p(data[x_col]),
-                mode='lines',
-                name='Trend Line',
-                line=dict(color='red', width=2, dash='dash')
-            ))
+            # Ensure arrays have same length and minimum points for fitting
+            if len(x_clean) == len(y_clean) and len(x_clean) >= 2:
+                z = np.polyfit(x_clean, y_clean, 1)
+                p = np.poly1d(z)
+            else:
+                p = None
+            
+            if p is not None:
+                fig.add_trace(go.Scatter(
+                    x=data[x_col],
+                    y=p(data[x_col]),
+                    mode='lines',
+                    name='Trend Line',
+                    line=dict(color='red', width=2, dash='dash')
+                ))
         
         fig.update_layout(height=500)
         return fig
@@ -264,7 +272,20 @@ class VisualizationUtils:
     
     @classmethod
     def create_candlestick_chart(cls, data: pd.DataFrame, title: str = "") -> go.Figure:
-        """Create a candlestick chart."""
+        """Create a candlestick chart with OHLC validation."""
+        required_cols = ['open', 'high', 'low', 'close']
+        missing_cols = [col for col in required_cols if col not in data.columns]
+        
+        if missing_cols:
+            # Create empty figure with error message
+            fig = go.Figure()
+            fig.add_annotation(
+                text=f"Missing required columns: {missing_cols}",
+                xref="paper", yref="paper",
+                x=0.5, y=0.5, showarrow=False
+            )
+            return fig
+        
         fig = go.Figure(data=go.Candlestick(
             x=data.index,
             open=data['open'],

@@ -84,6 +84,10 @@ class AnalysisEngine:
         self._cached_performance_metrics[cache_key] = result
         return result
     
+    def calculate_signal_accuracy(self, correlation_data: pd.DataFrame) -> float:
+        """Calculate directional signal accuracy (public method)."""
+        return self._calculate_signal_accuracy(correlation_data)
+    
     def _calculate_signal_accuracy(self, correlation_data: pd.DataFrame) -> float:
         """Calculate directional signal accuracy."""
         if correlation_data.empty:
@@ -128,7 +132,7 @@ class AnalysisEngine:
             return fig
         
         # Group by month and count articles
-        monthly_counts = filtered_articles.set_index('date').resample('M').size()
+        monthly_counts = filtered_articles.set_index('date').resample('ME').size()
         
         # Create line chart
         fig = go.Figure()
@@ -396,6 +400,7 @@ class AnalysisEngine:
         attribution['by_market_period'] = period_perf.to_dict('index')
         
         # Performance by signal strength quartiles
+        week_data = week_data.copy()
         week_data['signal_strength_quartile'] = pd.qcut(
             week_data['signal_strength'], 
             q=4, 
@@ -470,10 +475,22 @@ class AnalysisEngine:
     
     def _calculate_max_drawdown(self, returns: np.ndarray) -> float:
         """Calculate maximum drawdown from returns series."""
-        cumulative = np.cumprod(1 + returns)
+        if len(returns) == 0:
+            return 0.0
+        
+        # Handle edge cases where returns might cause invalid cumulative products
+        safe_returns = np.clip(returns, -0.99, 10.0)  # Clip extreme values
+        cumulative = np.cumprod(1 + safe_returns)
+        
+        # Handle NaN values
+        if np.any(np.isnan(cumulative)) or np.any(np.isinf(cumulative)):
+            return 0.0
+            
         peak = np.maximum.accumulate(cumulative)
         drawdown = (cumulative - peak) / peak
-        return np.min(drawdown)
+        
+        # Return absolute minimum drawdown (positive number)
+        return abs(np.min(drawdown)) if not np.isnan(np.min(drawdown)) else 0.0
     
     def create_returns_distribution_chart(self, filters: Dict[str, Any]) -> go.Figure:
         """Create returns distribution histogram."""

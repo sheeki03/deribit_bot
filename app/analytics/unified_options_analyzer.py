@@ -12,6 +12,7 @@ from datetime import datetime, date, timedelta
 import logging
 import json
 import re
+import threading
 from dataclasses import dataclass, asdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -80,6 +81,7 @@ class UnifiedOptionsAnalyzer:
         
         # Cache for analysis results
         self._analysis_cache: Dict[str, OptionsAnalysisContext] = {}
+        self._cache_lock = threading.RLock()
         
         # Load image analysis results
         self._load_image_analysis_results()
@@ -184,9 +186,10 @@ class UnifiedOptionsAnalyzer:
         
         cache_key = f"{asset}_{date_str}"
         
-        # Check cache
-        if cache_key in self._analysis_cache:
-            return self._analysis_cache[cache_key]
+        # Check cache (thread-safe)
+        with self._cache_lock:
+            if cache_key in self._analysis_cache:
+                return self._analysis_cache[cache_key]
         
         logger.info(f"Creating options analysis context for {asset} on {date_str}")
         
@@ -264,8 +267,9 @@ class UnifiedOptionsAnalyzer:
             market_regime=market_regime
         )
         
-        # Cache the result
-        self._analysis_cache[cache_key] = context
+        # Cache the result (thread-safe)
+        with self._cache_lock:
+            self._analysis_cache[cache_key] = context
         
         logger.info(f"Created options analysis context for {asset} on {date_str}")
         return context

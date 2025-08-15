@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional, Dict, List, Union, Tuple, Any
 from datetime import datetime, date, timedelta
 import logging
+import threading
 from dataclasses import dataclass, asdict
 from abc import ABC, abstractmethod
 
@@ -144,12 +145,12 @@ class LongCallStrategy(OptionsStrategy):
         """Exit based on profit target, stop loss, or time decay."""
         current_pnl = self.calculate_pnl(trade, context)
         
-        # Profit target
+        # Profit target (absolute threshold)
         if current_pnl >= self.profit_target:
             return True
         
-        # Stop loss
-        if current_pnl <= self.stop_loss:
+        # Stop loss (absolute threshold, normalize with abs())
+        if current_pnl <= -abs(self.stop_loss):
             return True
         
         # Time-based exit (7 days before expiry)
@@ -278,7 +279,14 @@ class OptionsBacktester:
                 # Check for new entry
                 if strategy.should_enter(context) and len(open_trades) < 5:  # Max 5 concurrent positions
                     contracts = strategy.create_position(context)
-                    if contracts:
+                    
+                    # Validate contracts before creating trade
+                    if (contracts is not None and 
+                        isinstance(contracts, list) and 
+                        len(contracts) > 0 and 
+                        hasattr(contracts[0], 'symbol') and 
+                        contracts[0].symbol):
+                        
                         trade = BacktestTrade(
                             entry_date=date_str,
                             exit_date=None,
@@ -288,6 +296,8 @@ class OptionsBacktester:
                             entry_analysis=asdict(analysis)
                         )
                         open_trades.append(trade)
+                    else:
+                        logger.warning(f"Invalid contracts returned by strategy.create_position on {date_str}: {contracts}")
                 
             except Exception as e:
                 logger.warning(f"Error processing {date_str}: {e}")
@@ -394,8 +404,15 @@ class OptionsBacktester:
         return pd.DataFrame(trade_data)
 
 
-# Global instance
-backtester = OptionsBacktester()
+# Thread-local storage for backtester instances
+_thread_local = threading.local()
+
+
+def get_backtester() -> OptionsBacktester:
+    """Get a thread-local OptionsBacktester instance."""
+    if not hasattr(_thread_local, 'backtester'):
+        _thread_local.backtester = OptionsBacktester()
+    return _thread_local.backtester
 
 
 def run_simple_backtest(asset: str = 'BTC', 
@@ -403,4 +420,4 @@ def run_simple_backtest(asset: str = 'BTC',
                        end_date: str = '2025-08-12') -> BacktestResults:
     """Run a simple long call backtest."""
     strategy = LongCallStrategy()
-    return backtester.backtest_strategy(strategy, asset, start_date, end_date)
+    return get_backtester().backtest_strategy(strategy, asset, start_date, end_date)

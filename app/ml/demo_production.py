@@ -20,7 +20,7 @@ import numpy as np
 # Add project root to path
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from app.ml.production_scorer import production_scorer
+from app.ml.multimodal_scorer import multimodal_scorer
 from app.core.logging import logger
 
 
@@ -292,11 +292,11 @@ async def main_async(args: argparse.Namespace):
     print(f"   Enhanced PRD Phase: 2 - Intelligence")
     
     # Reset scorer statistics for clean demo
-    production_scorer.reset_statistics()
+    multimodal_scorer.reset_statistics()
     
     # Run production pipeline
     start_time = time.time()
-    results = await production_scorer.process_batch(
+    results = await multimodal_scorer.process_batch(
         articles, 
         assets, 
         max_concurrent=args.concurrent,
@@ -305,7 +305,7 @@ async def main_async(args: argparse.Namespace):
     processing_time = time.time() - start_time
     
     # Get performance summary
-    performance_summary = production_scorer.get_performance_summary()
+    performance_summary = multimodal_scorer.get_performance_summary()
     
     # Analyze results
     analysis = analyze_production_results(results, assets)

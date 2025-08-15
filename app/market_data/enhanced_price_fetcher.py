@@ -15,10 +15,21 @@ from dataclasses import dataclass
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import warnings
-warnings.filterwarnings('ignore')
 
-from alpha_vantage.timeseries import TimeSeries
-from fredapi import Fred
+# Optional imports with sentinel values
+try:
+    from alpha_vantage.timeseries import TimeSeries
+    HAS_ALPHA_VANTAGE = True
+except ImportError:
+    TimeSeries = None
+    HAS_ALPHA_VANTAGE = False
+
+try:
+    from fredapi import Fred
+    HAS_FRED = True
+except ImportError:
+    Fred = None
+    HAS_FRED = False
 
 logger = logging.getLogger(__name__)
 
@@ -68,22 +79,28 @@ class EnhancedPriceFetcher:
         
         # Alpha Vantage
         if self.config.use_alpha_vantage and self.config.alpha_vantage_key:
-            try:
-                self.providers['alpha_vantage'] = TimeSeries(
-                    key=self.config.alpha_vantage_key,
-                    output_format='pandas'
-                )
-                logger.info("Alpha Vantage provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Alpha Vantage: {e}")
+            if not HAS_ALPHA_VANTAGE:
+                logger.warning("Alpha Vantage requested but not available (import failed)")
+            else:
+                try:
+                    self.providers['alpha_vantage'] = TimeSeries(
+                        key=self.config.alpha_vantage_key,
+                        output_format='pandas'
+                    )
+                    logger.info("Alpha Vantage provider initialized")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Alpha Vantage: {e}")
         
         # FRED
         if self.config.use_fred and self.config.fred_key:
-            try:
-                self.providers['fred'] = Fred(api_key=self.config.fred_key)
-                logger.info("FRED provider initialized")
-            except Exception as e:
-                logger.warning(f"Failed to initialize FRED: {e}")
+            if not HAS_FRED:
+                logger.warning("FRED requested but not available (import failed)")
+            else:
+                try:
+                    self.providers['fred'] = Fred(api_key=self.config.fred_key)
+                    logger.info("FRED provider initialized")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize FRED: {e}")
     
     def fetch_historical_data(
         self, 

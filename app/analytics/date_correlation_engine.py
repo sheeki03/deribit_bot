@@ -200,8 +200,9 @@ class DateCorrelationEngine:
                         raw_text=published_at,
                         content_summary=title
                     ))
-            except:
-                pass
+            except (ValueError, TypeError, KeyError, IndexError, AttributeError) as e:
+                logger.debug(f"Failed to extract date from text: {text[:50]}... Error: {e}")
+                continue
         
         return extractions
     
