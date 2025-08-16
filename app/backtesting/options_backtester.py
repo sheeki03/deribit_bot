@@ -68,6 +68,32 @@ class BacktestResults:
     avg_losing_trade: float
     sharpe_ratio: Optional[float] = None
     trades: List[BacktestTrade] = None
+    
+    @property
+    def total_return(self) -> float:
+        """Calculate total return as percentage.
+        
+        For options strategies, we calculate return relative to total premium paid.
+        If no premium data is available, we use a conservative estimate.
+        """
+        if not self.trades:
+            return 0.0
+        
+        # Calculate total premium paid (options cost)
+        total_premium_paid = 0.0
+        for trade in self.trades:
+            if trade.contracts:
+                for contract in trade.contracts:
+                    total_premium_paid += abs(contract.premium * contract.quantity)
+        
+        # If no premium data, estimate based on average trade size
+        if total_premium_paid == 0.0:
+            # Conservative estimate: assume each trade risked $1000 on average
+            estimated_capital = self.total_trades * 1000.0 if self.total_trades > 0 else 10000.0
+            return self.total_pnl / estimated_capital if estimated_capital > 0 else 0.0
+        
+        # Return as percentage of premium paid
+        return self.total_pnl / total_premium_paid if total_premium_paid > 0 else 0.0
 
 class OptionsStrategy(ABC):
     """Abstract base class for options strategies."""
