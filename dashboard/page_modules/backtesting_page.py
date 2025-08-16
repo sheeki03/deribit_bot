@@ -2,6 +2,18 @@
 Enhanced Backtesting Page Module
 Comprehensive options strategy backtesting with real-time analysis and advanced visualizations.
 """
+import sys
+import importlib
+
+# Force reload of backtesting modules to ensure latest code is used
+modules_to_reload = [key for key in sys.modules.keys() if 'backtesting' in key or 'options_backtester' in key]
+for module in modules_to_reload:
+    if module in sys.modules:
+        try:
+            importlib.reload(sys.modules[module])
+        except Exception:
+            pass
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -222,9 +234,18 @@ class BacktestingPageRenderer:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
+            # Handle missing total_return attribute with fallback calculation
+            if hasattr(results, 'total_return'):
+                total_return_value = results.total_return
+            else:
+                # Fallback: Calculate return based on total PnL and estimated capital
+                estimated_capital = results.total_trades * 1000.0 if results.total_trades > 0 else 10000.0
+                total_return_value = results.total_pnl / estimated_capital if estimated_capital > 0 else 0.0
+                st.warning("⚠️ Using fallback return calculation - restart Streamlit to fix")
+            
             st.metric(
                 "Total Return",
-                f"{results.total_return:.2%}",
+                f"{total_return_value:.2%}",
                 help="Total return of the strategy"
             )
         
