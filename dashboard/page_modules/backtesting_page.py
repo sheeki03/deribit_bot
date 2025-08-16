@@ -250,9 +250,11 @@ class BacktestingPageRenderer:
             )
         
         with col2:
+            # Handle None sharpe_ratio
+            sharpe_display = f"{results.sharpe_ratio:.2f}" if results.sharpe_ratio is not None else "N/A"
             st.metric(
                 "Sharpe Ratio", 
-                f"{results.sharpe_ratio:.2f}",
+                sharpe_display,
                 help="Risk-adjusted return metric"
             )
         
@@ -274,10 +276,13 @@ class BacktestingPageRenderer:
         col5, col6, col7, col8 = st.columns(4)
         
         with col5:
+            # Handle None max_drawdown
+            max_drawdown_display = f"{results.max_drawdown:.2%}" if results.max_drawdown is not None else "N/A"
+            max_drawdown_delta = f"{results.max_drawdown:.2%}" if (results.max_drawdown is not None and results.max_drawdown < 0) else None
             st.metric(
                 "Max Drawdown",
-                f"{results.max_drawdown:.2%}",
-                delta=f"{results.max_drawdown:.2%}" if results.max_drawdown < 0 else None,
+                max_drawdown_display,
+                delta=max_drawdown_delta,
                 delta_color="inverse"
             )
         
