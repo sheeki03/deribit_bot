@@ -61,6 +61,9 @@ class PriceDataLoader:
         try:
             df = pd.read_csv(file_path)
             df['date'] = pd.to_datetime(df['date'])
+            # Ensure dates are timezone-naive to prevent timezone conflicts
+            if df['date'].dt.tz is not None:
+                df['date'] = df['date'].dt.tz_localize(None)
             df = df.sort_values('date').reset_index(drop=True)
             
             self._cache[asset] = df
@@ -83,6 +86,11 @@ class PriceDataLoader:
         """
         df = self.load_asset_data(asset)
         
+        # Ensure DataFrame dates are timezone-naive (critical for consistent behavior)
+        if df['date'].dt.tz is not None:
+            df = df.copy()  # Work with a copy to avoid modifying cache
+            df['date'] = df['date'].dt.tz_localize(None)
+        
         if isinstance(target_date, str):
             target_date = pd.to_datetime(target_date).date()
         elif isinstance(target_date, datetime):
@@ -95,8 +103,11 @@ class PriceDataLoader:
         if not exact_match.empty:
             row = exact_match.iloc[0]
         else:
-            # Find closest date (within 7 days)  
-            target_dt = pd.to_datetime(target_date, utc=True).tz_convert(None)  # Handle timezone awareness
+            # Find closest date (within 7 days) - both are now guaranteed timezone-naive
+            target_dt = pd.to_datetime(target_date)
+            if target_dt.tz is not None:
+                target_dt = target_dt.tz_localize(None)
+                
             df['date_diff'] = abs(df['date'] - target_dt)
             closest = df[df['date_diff'] <= pd.Timedelta(days=7)].sort_values('date_diff')
             
@@ -166,6 +177,12 @@ class PriceDataLoader:
             return {}
         
         df = self.load_asset_data(asset)
+        
+        # Ensure DataFrame dates are timezone-naive (critical for consistent behavior)
+        if df['date'].dt.tz is not None:
+            df = df.copy()  # Work with a copy to avoid modifying cache
+            df['date'] = df['date'].dt.tz_localize(None)
+            
         analysis_date = pd.to_datetime(analysis_date).date()
         
         # Get historical context (last 30 days)
