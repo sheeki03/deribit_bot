@@ -4,15 +4,18 @@ Comprehensive options strategy backtesting with real-time analysis and advanced 
 """
 import sys
 import importlib
+import os
 
-# Force reload of backtesting modules to ensure latest code is used
-modules_to_reload = [key for key in sys.modules.keys() if 'backtesting' in key or 'options_backtester' in key]
-for module in modules_to_reload:
-    if module in sys.modules:
-        try:
-            importlib.reload(sys.modules[module])
-        except Exception:
-            pass
+# Only reload modules in development environment
+if os.getenv('DEBUG', 'false').lower() == 'true' or os.getenv('STREAMLIT_DEV', 'false').lower() == 'true':
+    # Force reload of backtesting modules to ensure latest code is used
+    modules_to_reload = [key for key in sys.modules.keys() if 'backtesting' in key or 'options_backtester' in key]
+    for module in modules_to_reload:
+        if module in sys.modules:
+            try:
+                importlib.reload(sys.modules[module])
+            except Exception:
+                pass
 
 import streamlit as st
 import pandas as pd
@@ -319,12 +322,15 @@ class BacktestingPageRenderer:
         """Create comprehensive performance visualization charts."""
         st.subheader("📈 Performance Analysis")
         
-        # Create sample equity curve (in real implementation, this would come from results)
-        dates = pd.date_range(start='2025-07-01', end='2025-08-15', freq='D')
-        equity_curve = pd.Series(
-            np.cumprod(1 + np.random.normal(0.001, 0.02, len(dates))),
-            index=dates
-        )
+        # Generate equity curve from actual trade results
+        if hasattr(results, 'trades') and results.trades:
+            equity_data = self._generate_equity_curve_from_trades(results.trades)
+            dates = equity_data['dates']
+            equity_curve = equity_data['equity']
+        else:
+            # Fallback for empty results
+            dates = pd.date_range(start=results.start_date, end=results.end_date, freq='D')
+            equity_curve = pd.Series([10000] * len(dates), index=dates)
         
         tab1, tab2, tab3 = st.tabs(["💹 Equity Curve", "📊 Monthly Returns", "🎯 Drawdown"])
         
@@ -458,17 +464,106 @@ class BacktestingPageRenderer:
         with col2:
             st.markdown("**Strategy Statistics**")
             
-            stats = {
-                "Best Trade": f"{np.random.uniform(0.5, 1.5):.2%}",
-                "Worst Trade": f"{np.random.uniform(-0.8, -0.2):.2%}",
-                "Avg Win": f"{np.random.uniform(0.1, 0.4):.2%}",
-                "Avg Loss": f"{np.random.uniform(-0.4, -0.1):.2%}",
-                "Consecutive Wins": f"{np.random.randint(2, 8)}",
-                "Consecutive Losses": f"{np.random.randint(1, 5)}"
-            }
+            stats = self._calculate_strategy_statistics(results)
             
             for stat, value in stats.items():
                 st.metric(stat, value)
+    
+    def _generate_equity_curve_from_trades(self, trades: List) -> Dict[str, Any]:
+        """Generate equity curve from actual trade data."""
+        if not trades:
+            return {'dates': [], 'equity': []}
+        
+        # Create timeline of all trade events
+        events = []
+        for trade in trades:
+            if trade.pnl is not None:
+                exit_date = trade.exit_date or trade.entry_date
+                events.append({
+                    'date': pd.to_datetime(exit_date),
+                    'pnl': trade.pnl
+                })
+        
+        if not events:
+            return {'dates': [], 'equity': []}
+        
+        # Sort events by date
+        events = sorted(events, key=lambda x: x['date'])
+        
+        # Generate daily equity curve
+        start_date = events[0]['date']
+        end_date = events[-1]['date']
+        dates = pd.date_range(start=start_date, end=end_date, freq='D')
+        
+        # Initialize equity curve with starting capital
+        starting_capital = 10000.0
+        equity_values = []
+        cumulative_pnl = 0.0
+        
+        event_idx = 0
+        for date in dates:
+            # Add any PnL from trades closed on this date
+            while event_idx < len(events) and events[event_idx]['date'].date() == date.date():
+                cumulative_pnl += events[event_idx]['pnl']
+                event_idx += 1
+            
+            equity_values.append(starting_capital + cumulative_pnl)
+        
+        return {
+            'dates': dates,
+            'equity': pd.Series(equity_values, index=dates)
+        }
+    
+    def _calculate_strategy_statistics(self, results: BacktestResults) -> Dict[str, str]:
+        """Calculate real strategy statistics from trade data."""
+        if not results.trades or not any(trade.pnl is not None for trade in results.trades):
+            return {
+                "Best Trade": "N/A",
+                "Worst Trade": "N/A", 
+                "Avg Win": "N/A",
+                "Avg Loss": "N/A",
+                "Consecutive Wins": "N/A",
+                "Consecutive Losses": "N/A"
+            }
+        
+        # Extract PnL values
+        pnls = [trade.pnl for trade in results.trades if trade.pnl is not None]
+        
+        # Calculate statistics
+        best_trade = max(pnls) if pnls else 0
+        worst_trade = min(pnls) if pnls else 0
+        
+        winning_trades = [pnl for pnl in pnls if pnl > 0]
+        losing_trades = [pnl for pnl in pnls if pnl < 0]
+        
+        avg_win = sum(winning_trades) / len(winning_trades) if winning_trades else 0
+        avg_loss = sum(losing_trades) / len(losing_trades) if losing_trades else 0
+        
+        # Calculate consecutive wins/losses
+        consecutive_wins = 0
+        consecutive_losses = 0
+        max_consecutive_wins = 0
+        max_consecutive_losses = 0
+        
+        for pnl in pnls:
+            if pnl > 0:
+                consecutive_wins += 1
+                consecutive_losses = 0
+                max_consecutive_wins = max(max_consecutive_wins, consecutive_wins)
+            elif pnl < 0:
+                consecutive_losses += 1
+                consecutive_wins = 0
+                max_consecutive_losses = max(max_consecutive_losses, consecutive_losses)
+        
+        # Format for display (convert to percentages for returns)
+        return {
+            "Best Trade": f"${best_trade:.2f}",
+            "Worst Trade": f"${worst_trade:.2f}",
+            "Avg Win": f"${avg_win:.2f}",
+            "Avg Loss": f"${avg_loss:.2f}",
+            "Consecutive Wins": f"{max_consecutive_wins}",
+            "Consecutive Losses": f"{max_consecutive_losses}"
+        }
     
     def _render_event_studies(self):
         """Render event study analysis interface."""

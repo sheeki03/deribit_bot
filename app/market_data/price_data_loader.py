@@ -12,6 +12,28 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+def normalize_datetime_column_to_naive(df: pd.DataFrame, col: str = 'date') -> pd.DataFrame:
+    """Normalize a datetime column to timezone-naive, avoiding cache mutations.
+    
+    Args:
+        df: DataFrame to normalize
+        col: Column name to normalize (default: 'date')
+        
+    Returns:
+        DataFrame with timezone-naive datetime column (copy if needed)
+    """
+    if col not in df.columns:
+        return df
+    
+    # Only copy if timezone normalization is needed
+    if df[col].dt.tz is not None:
+        df = df.copy()  # Work with a copy to avoid modifying cache
+        df[col] = df[col].dt.tz_localize(None)
+    
+    return df
+
+
 class PriceDataLoader:
     """Load and manage historical price data for crypto assets."""
     
@@ -87,9 +109,7 @@ class PriceDataLoader:
         df = self.load_asset_data(asset)
         
         # Ensure DataFrame dates are timezone-naive (critical for consistent behavior)
-        if df['date'].dt.tz is not None:
-            df = df.copy()  # Work with a copy to avoid modifying cache
-            df['date'] = df['date'].dt.tz_localize(None)
+        df = normalize_datetime_column_to_naive(df)
         
         if isinstance(target_date, str):
             target_date = pd.to_datetime(target_date).date()
@@ -179,9 +199,7 @@ class PriceDataLoader:
         df = self.load_asset_data(asset)
         
         # Ensure DataFrame dates are timezone-naive (critical for consistent behavior)
-        if df['date'].dt.tz is not None:
-            df = df.copy()  # Work with a copy to avoid modifying cache
-            df['date'] = df['date'].dt.tz_localize(None)
+        df = normalize_datetime_column_to_naive(df)
             
         analysis_date = pd.to_datetime(analysis_date).date()
         

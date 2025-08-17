@@ -84,8 +84,28 @@ DATABASE_URL=postgresql://user:pass@localhost:5432/deribit_flows
 
 ### 3. Launch with Docker
 
+**Required Environment Variables for Docker:**
+
+Make sure your `.env` file includes these required database credentials:
+
+```env
+# PostgreSQL Database (REQUIRED for Docker)
+POSTGRES_USER=deribit_user
+POSTGRES_PASSWORD=your_secure_password_here
+POSTGRES_DB=deribit_flows
+
+# Plus all the API keys mentioned above
+OPENROUTER_API_KEY=your_openrouter_key
+FIRECRAWL_API_KEY=your_firecrawl_key
+# ... etc
+```
+
 ```bash
-# Start all services
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your credentials (especially POSTGRES_* variables)
+
+# Start all services (PostgreSQL + Redis + App + Streamlit)
 docker-compose up -d
 
 # View logs

@@ -433,14 +433,14 @@ class OptionsBacktester:
         drawdown = cumulative_pnl - running_max
         max_drawdown = abs(min(drawdown)) if len(drawdown) > 0 else 0
         
-        # Calculate Sharpe ratio (simplified)
+        # Calculate Sharpe ratio (annualized)
         sharpe_ratio = None
         if len(pnls) > 1:
             daily_returns = np.array(pnls)
-            excess_return = np.mean(daily_returns)  # Assuming risk-free rate ~ 0 for simplicity
-            volatility = np.std(daily_returns, ddof=1)
-            if volatility > 0:
-                sharpe_ratio = excess_return / volatility
+            mean_daily = np.mean(daily_returns)  # Assuming risk-free rate ~ 0 for simplicity
+            std_daily = np.std(daily_returns, ddof=1)
+            if std_daily > 0:
+                sharpe_ratio = (mean_daily / std_daily) * np.sqrt(252)  # Annualized using trading days
         
         return BacktestResults(
             strategy_name=strategy_name,
