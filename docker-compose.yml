@@ -47,7 +47,7 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-your_secure_password_here}@postgres:5432/${POSTGRES_DB:-deribit_flows}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
@@ -69,7 +69,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-your_secure_password_here}@postgres:5432/${POSTGRES_DB:-deribit_flows}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
@@ -88,7 +88,7 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-your_secure_password_here}@postgres:5432/${POSTGRES_DB:-deribit_flows}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
@@ -105,7 +105,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-deribit_user}:${POSTGRES_PASSWORD:-your_secure_password_here}@postgres:5432/${POSTGRES_DB:-deribit_flows}
       - REDIS_URL=redis://redis:6379/0
     env_file:
       - .env
